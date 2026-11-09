@@ -1,0 +1,49 @@
+/* 道法裁判 · 真实卷宗版 —— 五案数据（公共设定） */
+window.DATA_REAL = {
+  id: "real",
+  meta: {
+    kicker: "THE CASE FILES",
+    title: "真实卷宗",
+    subtitle: "五起判例，五次重审",
+    lead: "以真实姓名、真实判决为底本。每一庭结束后，会给出该案的真实裁判结果与后续法治进程。",
+    note: "除已公开的当事人外，人物均为化名；庭审对白为教学性重演，不构成法律意见。",
+    bg: "img/real/bg-archive.jpg",
+    courtVideo: "img/real/video/court.mp4"
+  },
+  cast: {
+    judge:     { name: "审判长", role: "合议庭", img: "img/real/ch-judge.jpg" },
+    prosecutor:{ name: "公诉人", role: "控方",   img: "img/real/ch-prosecutor.jpg" },
+    defense:   { name: "辩护人", role: "辩方",   img: "img/real/ch-defense.jpg" },
+    defendant: { name: "被告人", role: "当事人", img: "img/real/ch-defendant.jpg" },
+    witnessF:  { name: "证人",   role: "出庭作证", img: "img/real/ch-witness-f.jpg" },
+    witnessM:  { name: "证人",   role: "出庭作证", img: "img/real/ch-witness-m.jpg" }
+  },
+  /* 角色立绘前缀：同一人物在不同案件的席位上复用同一张脸 */
+  looks: {
+    "段某":       "img/real/cast/elder-man",
+    "杨某":       "img/real/cast/middle-man",
+    "物业值班员": { base: "img/real/cast/middle-woman-b", ems: 1 },
+    "周某":       "img/real/cast/young-woman-a",
+    "苏银霞":     "img/real/cast/middle-woman",
+    "赵某":       "img/real/cast/rough-man-a",
+    "于欢":       "img/real/cast/young-man",
+    "杜某":       "img/real/cast/rough-man-b",
+    "处警民警":   { base: "img/real/cast/middle-man-b", ems: 1 },
+    "刘鑫":       "img/real/cast/young-woman-a",
+    "刘暖曦":     "img/real/cast/young-woman-a",
+    "江歌":       "img/real/cast/young-woman-b",
+    "林某":       { base: "img/real/cast/middle-woman-c", ems: 1 },
+    "彭宇":       { base: "img/real/cast/young-man-b", ems: 1 },
+    "徐寿兰":     "img/real/cast/elder-woman",
+    "陈二春":     { base: "img/real/cast/middle-man-c", ems: 1 },
+    "药家鑫":     "img/real/cast/student-man",
+    "张妙":       { base: "img/real/cast/young-woman-c", ems: 1 },
+    "冯某":       { base: "img/real/cast/middle-man-d", ems: 1 }
+  },
+  thinkers: [
+    { id: "kant",  name: "康德",   tag: "义务论",   line: "行为的对错，不看结果，看它能否被普遍化。" },
+    { id: "mill",  name: "密尔",   tag: "功利主义", line: "把判决当作一条将被千万次引用的规则来算总账。" },
+    { id: "rawls", name: "罗尔斯", tag: "正义论",   line: "不知道自己是哪一方时，你愿意接受这条规则吗？" }
+  ],
+  cases: []
+};
