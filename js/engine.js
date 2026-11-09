@@ -189,6 +189,12 @@
     document.body.dataset.version = "";
     var title = "道法裁判", ch = "";
     for (var i = 0; i < title.length; i++) ch += '<span style="--i:' + i + '">' + title.charAt(i) + '</span>';
+    var dust = "";
+    for (var d = 0; d < 16; d++) {
+      dust += '<i style="left:' + ((d * 37 + 11) % 100) + '%;top:' + ((d * 61 + 7) % 100) + '%;' +
+        '--dur:' + (14 + (d % 6) * 4) + 's;--delay:-' + (d % 12) + 's;--sz:' + (1 + (d % 3)) + 'px;' +
+        '--op:' + (0.16 + (d % 4) * 0.09).toFixed(2) + '"></i>';
+    }
     app.innerHTML =
       '<div class="title-screen">' +
         '<div class="ts-bg">' +
@@ -196,30 +202,30 @@
           '<div class="ts-half ts-anime" style="background-image:url(\'' + esc(VERSIONS.anime.meta.bg) + '\')"></div>' +
           '<div class="ts-scrim"></div>' +
           '<div class="ts-grain"></div>' +
+          '<div class="ts-dust" aria-hidden="true">' + dust + '</div>' +
         '</div>' +
         '<div class="ts-content">' +
-          '<div class="ts-kicker"><i></i>CASE RE-TRIAL<span>·</span>五案重审</div>' +
+          '<div class="ts-topline">' +
+            '<div class="ts-kicker"><i></i>CASE RE-TRIAL<span>·</span>五案重审</div>' +
+            '<div class="ts-edition">全五案 · 重审卷</div>' +
+          '</div>' +
           '<div class="ts-title-row">' +
             '<h1 class="ts-title">' + ch + '</h1>' +
             '<div class="ts-seal"><span>重审</span></div>' +
           '</div>' +
           '<div class="ts-rule"><i></i></div>' +
-          '<p class="ts-sub">两套画风 · 五起判例 · 一次重审</p>' +
+          '<div class="ts-sub-row">' +
+            '<p class="ts-sub">两套画风 · 五起判例 · 一次重审</p>' +
+            '<div class="ts-ornament" aria-hidden="true"><i></i><b>◆</b><i></i></div>' +
+          '</div>' +
           '<div class="ts-gates">' +
             gateHTML("real", VERSIONS.real) +
             gateHTML("anime", VERSIONS.anime) +
           '</div>' +
-          '<div class="ts-film">' +
-            '<div class="ts-film-txt"><b>法庭演出影像</b><span>两版各有一段生成影像。可以不进庭审，先看片。</span></div>' +
-            '<div class="ts-film-btns">' +
-              '<button class="film-btn" data-filmver="real"><i>▶</i>真实卷宗 · 演出影像</button>' +
-              '<button class="film-btn" data-filmver="anime"><i>▶</i>二次元法庭 · 演出影像</button>' +
-            '</div>' +
-          '</div>' +
           aiBandHTML() +
           '<div class="ts-foot">' +
             '真实卷宗以公开判例为底本；二次元法庭为架空人物改编。两版进度各自独立。<br>' +
-            '每案先看案件还原，再开庭质证；证据随剧情入卷，只能在关键节点出示。五案结束后生成你的伦理画像。' +
+            '每案先看场景复原，再开庭质证；还原里只入卷一小部分材料，其余在庭审追问中依次引出。五案结束后生成你的伦理画像。' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -229,11 +235,16 @@
   /* 标题页的 AI 能力说明：让玩家一眼知道 AI 在游戏里干什么 */
   function aiBandHTML() {
     var ready = window.AI && window.AI.ready();
+    var model = "glm-5.3-flash";
+    try {
+      var st = window.AI && window.AI.settings ? window.AI.settings() : null;
+      if (st && st.model) model = st.model;
+    } catch (e) {}
     return '<section class="ts-ai">' +
       '<div class="ts-ai-head">' +
         '<span class="ts-ai-tag">AI 法庭助理</span>' +
         '<span class="ts-ai-state' + (ready ? " on" : "") + '">' +
-          (ready ? "已连接" : "未配置 · 不接入也能完整通关") + '</span>' +
+          (ready ? "已连接 · " + esc(model) : "未配置 · 不接入也能完整通关") + '</span>' +
       '</div>' +
       '<div class="ts-ai-grid">' +
         '<div class="ts-ai-item"><b>质询</b><span>按卷宗事实回答你的追问，不编造</span></div>' +
@@ -250,6 +261,7 @@
     var done = 0;
     for (var i = 0; i < V.cases.length; i++) if (bestGrade(id, V.cases[i].id)) done++;
     return '<button class="gate" data-version="' + id + '" style="--cover:url(\'' + esc(V.meta.bg) + '\')">' +
+      '<span class="gate-index" aria-hidden="true">' + (id === "real" ? "壹" : "贰") + '</span>' +
       '<div class="gate-body">' +
         '<div class="gate-kicker">' + esc(V.meta.kicker) + '</div>' +
         '<h2 class="gate-title">' + esc(V.meta.title) + '</h2>' +
@@ -298,6 +310,7 @@
     var picks = loadPicks(S.version);
     var picked = 0;
     for (var k in picks) picked++;
+    var pct = Math.round(done / V.cases.length * 100);
     app.innerHTML =
       '<div class="hub">' +
         '<div class="hub-head">' +
@@ -309,7 +322,7 @@
           '</div>' +
           '<div class="hub-side">' +
             '<div class="hub-count">已通审 ' + done + ' / ' + V.cases.length + '</div>' +
-            '<button class="btn film-btn" data-act="film">▶ 演出影像</button>' +
+            '<div class="hub-progress"><span>审结进度</span><div class="hub-progress-track"><i style="width:' + pct + '%"></i></div></div>' +
             (picked ? '<button class="btn profile-btn" data-act="profile">审判者画像 · ' + picked + ' 次判断</button>' : '') +
           '</div>' +
         '</div>' +
@@ -375,6 +388,7 @@
       version: version, V: V, c: c, idx: idx,
       phase: "recon",
       ev: ev, evHits: {},
+      reconEv: 0,
       asked: {}, consulted: {},
       node: 0, mistakes: 0,
       lines: [], li: 0, onDone: null,
@@ -401,12 +415,12 @@
     playCaseOpening(c);
   }
 
-  /* ================= 案件开场卡 ================= */
+  /* ================= 案件开场动画 ================= */
   var openingTimer = null;
   function closeCaseOpening() {
     clearTimeout(openingTimer);
     var el = document.getElementById("caseOpen");
-    if (el) { el.classList.remove("on", "is-film"); el.innerHTML = ""; }
+    if (el) { el.classList.remove("on"); el.innerHTML = ""; }
   }
   function playCaseOpening(c) {
     var el = document.getElementById("caseOpen");
@@ -417,12 +431,14 @@
       (vid ? '<video class="co-video" src="' + esc(vid) + '" poster="' + esc(c.bg || (S && S.V ? S.V.meta.bg : "")) + '" muted autoplay loop playsinline preload="auto"></video>' : "") +
       '<div class="co-shade"></div>' +
       '<div class="co-panel">' +
-        '<div class="co-no">开场影像<span>·</span>' + esc(c.no) + '<span>·</span>' + esc(c.cause || "重审") + '</div>' +
+        '<div class="co-seal" aria-hidden="true">重审</div>' +
+        '<div class="co-no">开场动画<span>·</span>' + esc(c.no) + '<span>·</span>' + esc(c.cause || "重审") + '</div>' +
         '<h2 class="co-title">' + esc(c.title) + '</h2>' +
         '<p class="co-sub">' + esc(c.subtitle || "") + '</p>' +
         '<div class="co-line"></div>' +
         '<p class="co-question">' + esc(c.question || "") + '</p>' +
         '<div class="co-tip">点击跳过 ▾</div>' +
+        '<div class="co-progress" aria-hidden="true"><i></i></div>' +
       '</div>';
     el.classList.add("on");
     var v = el.querySelector("video.co-video");
@@ -435,29 +451,6 @@
     }
     el.onclick = done;
     openingTimer = setTimeout(done, 5600);
-  }
-
-  /* 目录里的“演出影像”入口：完整播放本版本的法庭演出片 */
-  function playFilm() {
-    if (S && S.V) playVersionFilm(S.version);
-  }
-  /* 标题页 / 目录共用：按版本播放完整演出片 */
-  function playVersionFilm(version) {
-    var V = VERSIONS[version];
-    var el = document.getElementById("caseOpen");
-    if (!el || !V) return;
-    var vid = V.meta.courtVideo || "";
-    if (!vid) { toast("本版本暂无演出影像"); return; }
-    closeCaseOpening();
-    el.innerHTML = '<video class="co-video is-film" src="' + esc(vid) + '" poster="' + esc(V.meta.bg) + '" controls autoplay playsinline preload="auto"></video>' +
-      '<div class="co-film-bar"><span>演出影像 · ' + esc(V.meta.title) + '</span>' +
-      '<button class="co-film-close" data-film-close="1">关闭 ×</button></div>';
-    el.classList.add("on", "is-film");
-    el.onclick = function (e) {
-      if (e.target === el || (e.target && e.target.getAttribute("data-film-close"))) closeCaseOpening();
-    };
-    var v = el.querySelector("video");
-    if (v) { var pp = v.play(); if (pp && pp.catch) pp.catch(function () {}); }
   }
 
   /* ================= 证据在剧情中引出 ================= */
@@ -475,29 +468,47 @@
   function scanEvidence(ln) {
     if (!ln || !S || !S.c) return;
     var got = [];
+    var isRecon = S.phase === "recon";
+    /* 场景复原只放一小部分材料：整段还原最多入卷 2 份，
+       其余留到庭审里随证言细节一份一份引出 */
+    var reconLeft = isRecon ? 2 - (S.reconEv || 0) : 0;
+    if (isRecon && reconLeft <= 0) return;
+
     if (ln.ev) {
       var arr = Object.prototype.toString.call(ln.ev) === "[object Array]" ? ln.ev : [ln.ev];
       for (var a = 0; a < arr.length; a++) {
+        if (isRecon && reconLeft <= 0) break;
         var h = unlockEvidence(arr[a]);
-        if (h) got.push(h);
+        if (h) {
+          got.push(h);
+          if (isRecon) { S.reconEv = (S.reconEv || 0) + 1; reconLeft--; }
+        }
       }
     }
+
     var text = ln.t || "";
+    var hits = [];
     for (var i = 0; i < S.c.evidence.length; i++) {
       var e = S.c.evidence[i];
       if (S.ev[e.id] || !e.keys || !e.keys.length) continue;
-      var hits = S.evHits[e.id] || (S.evHits[e.id] = {});
+      var seen = S.evHits[e.id] || (S.evHits[e.id] = {});
       var q;
       for (var j = 0; j < e.keys.length; j++) {
         var kw = e.keys[j];
         if (!kw) continue;
-        if (text.indexOf(kw) >= 0) hits[kw] = true;
+        if (text.indexOf(kw) >= 0) seen[kw] = true;
       }
       var n = 0;
-      for (q in hits) n++;
-      if (n >= Math.min(2, e.keys.length)) {
-        var hh = unlockEvidence(e.id);
-        if (hh) got.push(hh);
+      for (q in seen) n++;
+      if (n >= Math.min(2, e.keys.length)) hits.push(e.id);
+    }
+    /* 每句话最多引出一份，庭审里慢慢展开，不一次性刷满 */
+    var allow = isRecon ? Math.min(1, reconLeft) : 1;
+    for (var k = 0; k < hits.length && k < allow; k++) {
+      var hh = unlockEvidence(hits[k]);
+      if (hh) {
+        got.push(hh);
+        if (isRecon) S.reconEv = (S.reconEv || 0) + 1;
       }
     }
     if (got.length) popEvidence(got);
@@ -723,19 +734,15 @@
     var sameWho = S.lastPortrait === who;
     var prevImg = S.lastImg;
     var faceChange = sameWho && prevImg && prevImg !== info.img;
-    /* 单图整体微动：不再把头与身体拆成两层，从根本上消除脸与脖子的错位接缝。
-       换表情时旧图整张淡出、新图淡入，配合呼吸与鼠标视差。 */
-    var ghost = faceChange
-      ? '<div class="p-face p-ghost"><img src="' + esc(prevImg) + '" data-look="' + esc(S.lastBase || "") + '" data-fb="' + esc(info.fb) + '" alt=""></div>'
-      : "";
+    /* 整张照片直接展示：不裁切、不跟随鼠标、不做头身分层；
+       表情切换只在整张图上做一次极短的淡入，不叠旧图，避免脸和脖子重影 */
     S.lastPortrait = who;
     S.lastImg = info.img;
     S.lastBase = info.base || "";
     var lookAttr = ' data-look="' + esc(info.base || "") + '" data-fb="' + esc(info.fb || "") + '"';
-    return '<figure class="portrait portrait--' + info.cls + (sameWho ? " same" : "") + (faceChange ? " swap" : "") + (talking ? " talking" : "") + '">' +
+    return '<figure class="portrait portrait--' + info.cls + (sameWho ? " same" : "") + (faceChange ? " swap" : "") + '">' +
       '<div class="portrait-body">' +
         '<div class="p-wrap">' +
-          ghost +
           '<div class="p-face p-live"><img src="' + esc(info.img) + '"' + lookAttr + ' alt="' + esc(info.name) + '"></div>' +
         '</div>' +
         '<span class="p-sheen" aria-hidden="true"></span>' +
@@ -795,6 +802,7 @@
     }
     var html = '<div class="' + cls + (S.phase === "recon" ? " is-recon" : "") + '">' +
       '<div class="trial-veil"></div>' +
+      '<div class="trial-mark" aria-hidden="true"><b>' + esc(S.c.no) + '</b><span>' + esc(S.c.title) + '</span></div>' +
       hudHTML() +
       '<div class="stage">' + portraitHTML(info, talking) + '</div>' +
       '<div class="dialog"><div class="dialog-inner">' + dialogHTML() + '</div></div>' +
@@ -851,25 +859,65 @@
     S.phase = "nodes";
     S.tmode = "statement";
     S.node = 0;
-    /* 兜底：跳过还原时，未在剧情里出现的材料也一并入卷，避免无证据可出示 */
-    var extra = unlockAllEvidence();
-    if (extra.length) toast("跳过还原 · 其余 " + extra.length + " 份材料已入卷");
     playBGM("tense");
     enterNode();
+  }
+
+  /* 进入节点时，若该节点要用的材料还没在剧情里出现，
+     由书记员当庭从卷宗里抽出来，保证庭审能继续，也不一次给太多 */
+  function ensureNodeEvidence(n) {
+    if (!n) return;
+    var ids = [];
+    if (n.answer) ids.push(n.answer);
+    if (n.answers) for (var i = 0; i < n.answers.length; i++) ids.push(n.answers[i]);
+    for (var j = 0; j < ids.length; j++) {
+      if (S.ev[ids[j]]) continue;
+      var e = null;
+      for (var k = 0; k < S.c.evidence.length; k++) if (S.c.evidence[k].id === ids[j]) e = S.c.evidence[k];
+      if (!e) continue;
+      S.ev[e.id] = true;
+      popEvidence([e]);
+      break;
+    }
+  }
+
+  /* 每个节点随证言再调取一份尚未入卷的材料：
+     挂在节点过渡对白的最后一句上，材料跟着这句话一起出现 */
+  function nodePreLines(n) {
+    var pre = (n && n.pre ? n.pre : []).slice();
+    var extra = null;
+    for (var i = 0; i < S.c.evidence.length; i++) {
+      if (!S.ev[S.c.evidence[i].id]) { extra = S.c.evidence[i]; break; }
+    }
+    if (extra) {
+      if (pre.length) {
+        var last = pre[pre.length - 1], copy = {}, k;
+        for (k in last) copy[k] = last[k];
+        copy.ev = copy.ev ? [].concat(copy.ev, extra.id) : extra.id;
+        pre[pre.length - 1] = copy;
+      } else {
+        S.ev[extra.id] = true;
+        setTimeout(function () { popEvidence([extra]); }, 60);
+      }
+    }
+    return pre;
   }
 
   /* 进入节点：先播过渡对白（pre），再亮出需要质证的陈述 */
   function enterNode() {
     var n = S.c.nodes[S.node];
     if (!n) { startClosing(); return; }
-    if (n.pre && n.pre.length) {
+    var pre = nodePreLines(n);
+    if (pre.length) {
       S.tmode = "lines";
-      playLines(n.pre, function () {
+      playLines(pre, function () {
+        ensureNodeEvidence(n);
         S.tmode = "statement";
         renderTrial();
       }, "pre");
       return;
     }
+    ensureNodeEvidence(n);
     S.tmode = "statement";
     renderTrial();
   }
@@ -1045,6 +1093,8 @@
     S.phase = "closing";
     S.tmode = "lines";
     playLines(S.c.closing, function () {
+      /* 结案前把剩余材料归档，卷宗完整 */
+      unlockAllEvidence();
       view = "ethics";
       renderEthics();
       playBGM("tender");
@@ -1076,7 +1126,7 @@
     var note = S.present
       ? "选择一件能够解释当前这句话的证据。只要指向同一个事实，多件材料都可能成立；出示无关材料才会被记为误判。" + aiNote
       : "这里只列出已经入卷的材料。还没在庭审里出现过的，不会显示。证据只能在关键节点出示。";
-    return '<div class="drawer" data-drawer="1">' +
+    return '<div class="drawer' + (S.version === "real" ? " v-real" : "") + '" data-drawer="1">' +
       '<div class="drawer-mask" data-act="close"></div>' +
       '<div class="drawer-panel">' +
         '<div class="drawer-head"><h2 class="drawer-title">证据卷 · ' + shown + ' 份</h2>' +
@@ -1120,7 +1170,7 @@
       '<p>接入后，助理能在这里按卷宗回答你的追问；你出示预设之外的材料时，由它判断是否切题；结案页还能生成判决说理与审判者点评。不接入也可以完整通关。</p>' +
       '<button class="btn btn-primary" data-act="aiSettings">配置 AI 接口</button>' +
     '</div>';
-    return '<div class="drawer" data-drawer="1">' +
+    return '<div class="drawer' + (S.version === "real" ? " v-real" : "") + '" data-drawer="1">' +
       '<div class="drawer-mask" data-act="close"></div>' +
       '<div class="drawer-panel ai-panel">' +
         '<div class="drawer-head"><h2 class="drawer-title">AI 法庭助理</h2>' +
@@ -1307,7 +1357,7 @@
         '<p class="consult-line">' + esc(line) + '</p>' +
       '</div>';
     }
-    return '<div class="drawer" data-drawer="1">' +
+    return '<div class="drawer' + (S.version === "real" ? " v-real" : "") + '" data-drawer="1">' +
       '<div class="drawer-mask" data-act="close"></div>' +
       '<div class="drawer-panel">' +
         '<div class="drawer-head"><h2 class="drawer-title">评议席 · 八位哲人</h2>' +
@@ -1675,7 +1725,6 @@
     }
     if (act === "aiSend") { aiSend(); return; }
     if (act === "landing") { renderLanding(); return; }
-    if (act === "film") { playFilm(); return; }
     if (act === "hub") { openHub(S.version); return; }
     if (act === "evidence") { openEvidence(false); return; }
     if (act === "consult") { S.drawer = "consult"; renderTrial(); return; }
@@ -1711,9 +1760,6 @@
 
   app.addEventListener("click", function (e) {
     var t = e.target;
-    var fv = t.closest("[data-filmver]");
-    if (fv) { playVersionFilm(fv.getAttribute("data-filmver")); return; }
-
     var ver = t.closest("button[data-version]");
     if (ver) { openHub(ver.getAttribute("data-version")); return; }
 
@@ -1798,19 +1844,6 @@
     var p = el.closest ? el.closest(".portrait") : null;
     if (p) p.classList.add("img-dead");
   }, true);
-
-  /* ================= 立绘微视差（Live2D 式跟随） ================= */
-  var parallaxFrame = 0;
-  window.addEventListener("mousemove", function (e) {
-    if (parallaxFrame) return;
-    parallaxFrame = requestAnimationFrame(function () {
-      parallaxFrame = 0;
-      var rx = (e.clientX / window.innerWidth - 0.5) * 2;
-      var ry = (e.clientY / window.innerHeight - 0.5) * 2;
-      document.documentElement.style.setProperty("--mx", rx.toFixed(3));
-      document.documentElement.style.setProperty("--my", ry.toFixed(3));
-    });
-  });
 
   /* ================= 启动 ================= */
   loadVoiceMan("real");
