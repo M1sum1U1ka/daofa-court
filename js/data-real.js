@@ -49,14 +49,26 @@ window.DATA_REAL = {
     "药家鑫的同学": { base: "img/real/cast/kin-classmate-yao", ems: 1 }
   },
   thinkers: [
-    { id: "kant",      name: "康德",     tag: "义务论",     line: "行为的对错，不看结果，看它能否被普遍化。" },
-    { id: "mill",      name: "密尔",     tag: "自由功利",   line: "自由的边界是不伤害他人，功利要落在每一个具体的人身上。" },
-    { id: "bentham",   name: "边沁",     tag: "功利主义",   line: "把判决当作一条将被千万次引用的规则来算总账。" },
-    { id: "aristotle", name: "亚里士多德", tag: "德性伦理", line: "德性是两恶之间的中道，看的是具体处境里的实践智慧。" },
-    { id: "rawls",     name: "罗尔斯",   tag: "契约正义",   line: "不知道自己是哪一方时，你愿意接受这条规则吗？" },
-    { id: "beccaria",  name: "贝卡里亚", tag: "刑罚人道",   line: "刑罚的力量来自确定与克制，而不是残酷。" },
-    { id: "confucius", name: "孔子",     tag: "德治与仁",   line: "道之以德，齐之以礼，有耻且格。" },
-    { id: "hanfei",    name: "韩非",     tag: "法家刑名",   line: "法不阿贵，绳不挠曲。人情替代不了制度。" }
+    { id: "kant",        name: "康德",       tag: "义务论",     line: "行为的对错，不看结果，看它能否被普遍化。" },
+    { id: "mill",        name: "密尔",       tag: "自由功利",   line: "自由的边界是不伤害他人，功利要落在每一个具体的人身上。" },
+    { id: "bentham",     name: "边沁",       tag: "功利主义",   line: "把判决当作一条将被千万次引用的规则来算总账。" },
+    { id: "aristotle",   name: "亚里士多德", tag: "德性伦理",   line: "德性是两恶之间的中道，看的是具体处境里的实践智慧。" },
+    { id: "rawls",       name: "罗尔斯",     tag: "契约正义",   line: "不知道自己是哪一方时，你愿意接受这条规则吗？" },
+    { id: "beccaria",    name: "贝卡里亚",   tag: "刑罚人道",   line: "刑罚的力量来自确定与克制，而不是残酷。" },
+    { id: "confucius",   name: "孔子",       tag: "德治与仁",   line: "道之以德，齐之以礼，有耻且格。" },
+    { id: "hanfei",      name: "韩非",       tag: "法家刑名",   line: "法不阿贵，绳不挠曲。人情替代不了制度。" },
+    { id: "mengzi",      name: "孟子",       tag: "仁政性善",   line: "恻隐之心，人皆有之。政者，正也。" },
+    { id: "xunzi",       name: "荀子",       tag: "礼法教化",   line: "人之性恶，其善者伪也。礼者，法之大分。" },
+    { id: "laozi",       name: "老子",       tag: "无为自然",   line: "法令滋彰，盗贼多有。为无为，则无不治。" },
+    { id: "wangyangming",name: "王阳明",     tag: "知行良知",   line: "知是行之始，行是知之成。良知之外，更无知。" },
+    { id: "socrates",    name: "苏格拉底",   tag: "诘问德性",   line: "未经省察的人生不值得过。德性即知识。" },
+    { id: "plato",       name: "柏拉图",     tag: "理想正义",   line: "正义就是每个人做自己分内的事，城邦各安其位。" },
+    { id: "aquinas",     name: "阿奎那",     tag: "自然法",     line: "恶法非法；自然法是理性受造物对永恒法的分有。" },
+    { id: "hobbes",      name: "霍布斯",     tag: "秩序契约",   line: "人对人是狼。没有公共权力，就没有正义。" },
+    { id: "locke",       name: "洛克",       tag: "自然权利",   line: "生命、自由、财产，是先于国家而存在的权利。" },
+    { id: "nietzsche",   name: "尼采",       tag: "价值重估",   line: "不做道德的奴隶，做价值的创造者。" },
+    { id: "gilligan",    name: "吉利根",     tag: "关怀伦理",   line: "道德不是抽象规则，而是具体关系里的关怀与回应。" },
+    { id: "nozick",      name: "诺齐克",     tag: "自由至上",   line: "个人是目的，不是他人的资源。最小国家，最宽自由。" }
   ],
   cases: []
 };

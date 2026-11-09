@@ -1582,6 +1582,22 @@ body[data-version="real"]::after {
 .testi-text { font-size: clamp(15.5px, 1.6vw, 18.5px); }
 
 /* ---------- 证据与求教 ---------- */
+.ev-media-wrap { display: block; position: relative; margin: 10px 0; }
+.ev-media {
+  display: block; width: 100%; aspect-ratio: 16 / 9;
+  object-fit: cover; border: 1px solid rgba(255, 255, 255, .16);
+  filter: saturate(.94) contrast(1.02);
+}
+.ev-media-tag {
+  position: absolute; left: 8px; bottom: 8px;
+  font-style: normal; font-size: 9px; letter-spacing: .12em;
+  padding: 3px 7px;
+  background: rgba(4, 7, 12, .74);
+  border: 1px solid rgba(217, 181, 112, .35);
+  color: #e8d6b0;
+}
+.v-real .ev-media { border-color: #d3c6b0; }
+.v-real .ev-media-tag { background: rgba(36, 31, 25, .8); color: #f3e7cf; }
 .ev-card {
   position: relative;
   padding: 16px 18px 15px 19px;
@@ -1611,6 +1627,12 @@ body[data-version="real"]::after {
 .v-real .drawer-title { color: #241f19; }
 
 .consult-card { border-radius: 2px; background: linear-gradient(180deg, rgba(255, 255, 255, .052), rgba(255, 255, 255, .02)); }
+.consult-case {
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px dashed rgba(217, 181, 112, .22);
+  color: #c9b58c;
+}
+.v-real .consult-case { color: #5d5245; border-top-color: #d8cdb8; }
 
 /* ---------- 分支与伦理 ---------- */
 .branch-screen::before {

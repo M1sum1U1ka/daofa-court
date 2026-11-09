@@ -108,7 +108,7 @@
     if (voiceMans[version] !== undefined) return;
     voiceMans[version] = null;
     try {
-      fetch("audio/voice/" + version + "/manifest.json", { cache: "force-cache" })
+      fetch("audio/voice/" + version + "/manifest.json", { cache: "no-store" })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (o) { voiceMans[version] = o && typeof o === "object" ? o : null; })
         .catch(function () {});
@@ -215,7 +215,7 @@
           '</div>' +
           '<div class="ts-rule"><i></i></div>' +
           '<div class="ts-sub-row">' +
-            '<p class="ts-sub">两套画风 · 五起判例 · 一次重审</p>' +
+            '<p class="ts-sub">真实卷宗 · 架空法庭 · 各自成卷</p>' +
             '<div class="ts-ornament" aria-hidden="true"><i></i><b>◆</b><i></i></div>' +
           '</div>' +
           '<div class="ts-gates">' +
@@ -224,7 +224,7 @@
           '</div>' +
           aiBandHTML() +
           '<div class="ts-foot">' +
-            '真实卷宗以公开判例为底本；二次元法庭为架空人物改编。两版进度各自独立。<br>' +
+            '真实卷宗以公开判例为底本；二次元法庭为完全架空的城邦寓言，不对应任何真实案件。两版进度各自独立。<br>' +
             '每案先看场景复原，再开庭质证；还原里只入卷一小部分材料，其余在庭审追问中依次引出。五案结束后生成你的伦理画像。' +
           '</div>' +
         '</div>' +
@@ -1107,9 +1107,17 @@
       var e = S.c.evidence[i];
       if (!S.ev[e.id]) continue;
       shown++;
+      var media = "";
+      if (e.media && e.media.src && e.media.type === "image") {
+        media = '<span class="ev-media-wrap">' +
+          '<img class="ev-media" src="' + esc(e.media.src) + '" alt="' + esc(e.media.caption || e.name) + '" loading="lazy">' +
+          '<em class="ev-media-tag">' + esc(e.media.caption || "AI 还原") + '</em>' +
+        '</span>';
+      }
       cards += '<button class="ev-card" data-ev="' + e.id + '">' +
         '<div class="ev-type">' + esc(e.type) + '</div>' +
         '<div class="ev-name">' + esc(e.name) + '</div>' +
+        media +
         '<p class="ev-doc">' + esc(e.doc) + '</p>' +
         (e.from ? '<p class="ev-from">来源：' + esc(e.from) + '</p>' : '') +
       '</button>';
@@ -1241,7 +1249,7 @@
       '<div class="ai-modal-panel">' +
         '<div class="drawer-head"><h2 class="drawer-title">AI 接口设置</h2>' +
           '<button class="drawer-close" data-aimodal="close">关闭 ×</button></div>' +
-        '<p class="drawer-note">支持任意 OpenAI 兼容接口（DeepSeek、通义、Kimi、本地 Ollama 等）。密钥只存在本机浏览器里。若以 file:// 直接打开时被浏览器跨域拦截，可改用本地静态服务器访问。</p>' +
+        '<p class="drawer-note">默认已内置智谱 glm-5.3-flash 接口，可直接使用；也可换成任意 OpenAI 兼容接口（DeepSeek、通义、Kimi、本地 Ollama 等）。密钥只存在本机浏览器里。</p>' +
         '<label class="ai-field"><span>接口地址</span><input id="aiBase" value="' + esc(st.baseUrl) + '" placeholder="https://api.deepseek.com/v1"></label>' +
         '<label class="ai-field"><span>模型</span><input id="aiModel" value="' + esc(st.model) + '" placeholder="deepseek-chat"></label>' +
         '<label class="ai-field"><span>API Key</span><input id="aiKey" type="password" value="' + esc(st.apiKey) + '" placeholder="sk-..."></label>' +
@@ -1349,20 +1357,21 @@
     var cards = "";
     for (var i = 0; i < S.V.thinkers.length; i++) {
       var t = S.V.thinkers[i];
-      var line = (S.c.consult && S.c.consult[t.id]) || t.line;
+      var line = (S.c.consult && S.c.consult[t.id]) || "";
       cards += '<div class="consult-card">' +
         '<div><span class="consult-name">' + esc(t.name) + '</span>' +
           '<span class="consult-tag">' + esc(t.tag) + '</span></div>' +
         '<p class="consult-line">' + esc(t.line) + '</p>' +
-        '<p class="consult-line">' + esc(line) + '</p>' +
+        (line && line !== t.line ? '<p class="consult-line consult-case">' + esc(line) + '</p>' : '') +
       '</div>';
     }
+    var n = S.V.thinkers.length;
     return '<div class="drawer' + (S.version === "real" ? " v-real" : "") + '" data-drawer="1">' +
       '<div class="drawer-mask" data-act="close"></div>' +
       '<div class="drawer-panel">' +
-        '<div class="drawer-head"><h2 class="drawer-title">评议席 · 八位哲人</h2>' +
+        '<div class="drawer-head"><h2 class="drawer-title">评议席 · ' + n + ' 位哲人</h2>' +
           '<button class="drawer-close" data-act="close">关闭 ×</button></div>' +
-        '<p class="drawer-note">求教不改变任何结果，只提供八种看问题的方式。同一份卷宗，八副眼睛。</p>' +
+        '<p class="drawer-note">求教不改变任何结果，只提供 ' + n + ' 种看问题的方式。同一份卷宗，不同的眼睛。</p>' +
         '<div class="consult-grid">' + cards + '</div>' +
       '</div>' +
     '</div>';
@@ -1490,7 +1499,43 @@
       desc: "你相信规则之外还有人心。你希望用教化与体面来维系秩序，让判决承担起引导风俗的责任。" },
     { id: "hanfei", name: "韩非", school: "法家刑名", quote: "法不阿贵，绳不挠曲。",
       vec: { order: .95, proc: .82, effect: .55, right: .15, virtue: .2, mercy: .12 },
-      desc: "你重视规则的确定与执行的彻底。你不太相信人情可以替代制度，认为模糊的善意往往制造更大的不公。" }
+      desc: "你重视规则的确定与执行的彻底。你不太相信人情可以替代制度，认为模糊的善意往往制造更大的不公。" },
+    { id: "mengzi", name: "孟子", school: "仁政与性善", quote: "恻隐之心，仁之端也。",
+      vec: { virtue: .9, mercy: .88, order: .55, right: .5, proc: .3, effect: .28 },
+      desc: "你相信人心里那一点不忍，是制度最后的底线。你愿意把判决写成一份教化，而不是一纸冷冰冰的处分。" },
+    { id: "xunzi", name: "荀子", school: "礼法教化", quote: "礼者，法之大分，类之纲纪也。",
+      vec: { order: .9, virtue: .72, proc: .62, right: .35, mercy: .3, effect: .38 },
+      desc: "你不相信人性天然向善，也不相信单靠刑罚就够。你更看重礼制、教化与可执行的规矩如何一起把人扶正。" },
+    { id: "laozi", name: "老子", school: "无为与自然", quote: "法令滋彰，盗贼多有。",
+      vec: { mercy: .72, virtue: .62, right: .6, order: .22, proc: .28, effect: .22 },
+      desc: "你警惕过度治理。你认为许多纠纷是被繁密的规则与好胜心制造出来的，最好的判决常常是少做一点。" },
+    { id: "wangyangming", name: "王阳明", school: "知行与良知", quote: "知是行之始，行是知之成。",
+      vec: { virtue: .96, mercy: .62, proc: .4, right: .45, order: .38, effect: .3 },
+      desc: "你看重一个人心里那点良知有没有落到行动上。说得再对，做不到，在你这里都不算数。" },
+    { id: "socrates", name: "苏格拉底", school: "诘问与德性", quote: "未经省察的人生不值得过。",
+      vec: { virtue: .9, proc: .82, right: .55, mercy: .45, order: .35, effect: .25 },
+      desc: "你不急着给答案，先追问定义：什么叫过错，什么叫公正，谁有资格下这个判断。你相信清醒的追问本身就是德性。" },
+    { id: "plato", name: "柏拉图", school: "理想正义", quote: "正义就是每个人做自己分内的事。",
+      vec: { virtue: .84, order: .8, proc: .5, right: .4, mercy: .4, effect: .3 },
+      desc: "你关心城邦的整体秩序与灵魂的等级。你愿意让最有德性的人承担判断的责任，也要求他们配得上这份权力。" },
+    { id: "aquinas", name: "阿奎那", school: "自然法", quote: "恶法非法。",
+      vec: { order: .84, virtue: .74, proc: .7, mercy: .5, right: .42, effect: .3 },
+      desc: "你相信在人间法律之上还有一层更高的理性秩序。违背它的命令也许有效，却不配被称为法。" },
+    { id: "hobbes", name: "霍布斯", school: "秩序契约", quote: "人对人是狼。",
+      vec: { order: .98, proc: .64, effect: .4, right: .2, virtue: .24, mercy: .15 },
+      desc: "你首先关心秩序能不能立住。没有公共权力，权利只是一句空话；你愿意为安全付出相当的自由代价。" },
+    { id: "locke", name: "洛克", school: "自然权利", quote: "生命、自由、财产，先于国家而存在。",
+      vec: { right: .96, proc: .7, mercy: .45, virtue: .42, order: .3, effect: .35 },
+      desc: "你把个人的生命与自由放在制度之前。政府可以治理，但不能拿走它本来就没有资格拿走的东西。" },
+    { id: "nietzsche", name: "尼采", school: "价值重估", quote: "不做道德的奴隶，做价值的创造者。",
+      vec: { virtue: .64, effect: .58, right: .55, order: .2, proc: .24, mercy: .2 },
+      desc: "你怀疑那些被说成天经地义的道德，究竟是谁的利益。你更在意一个人有没有力量承担自己选择的价值。" },
+    { id: "gilligan", name: "吉利根", school: "关怀伦理", quote: "道德是具体关系里的回应。",
+      vec: { mercy: .95, virtue: .7, right: .55, proc: .3, order: .28, effect: .25 },
+      desc: "你不满足于抽象规则，先问谁被留下了、谁在承受、关系有没有被修补。你相信关怀本身就是一种正义。" },
+    { id: "nozick", name: "诺齐克", school: "自由至上主义", quote: "个人是目的，不是他人的资源。",
+      vec: { right: .98, effect: .5, proc: .6, order: .2, virtue: .24, mercy: .25 },
+      desc: "你极警惕以集体之名拿走个人的东西。只要取得与转让是正当的，再分配在你这里就需要极强的理由。" }
   ];
 
   function profileData(version) {
@@ -1585,14 +1630,28 @@
       '<text x="' + (cx + 6) + '" y="' + (pad + 10) + '" class="chart-label" text-anchor="start">集体秩序</text>' +
       '<text x="' + (cx + 6) + '" y="' + (h - pad - 2) + '" class="chart-label" text-anchor="start">个体权利</text>';
 
+    var pc = coordsOf(pct);
+    /* 二十个派系全画点，只标注离玩家最近的十个，避免坐标图变成一团字 */
+    var ranking = [];
+    for (var m = 0; m < ARCHETYPES.length; m++) {
+      var cc = coordsOf(ARCHETYPES[m].vec);
+      var dx = cc.x - pc.x, dy = cc.y - pc.y;
+      ranking.push({ id: ARCHETYPES[m].id, d: dx * dx + dy * dy });
+    }
+    ranking.sort(function (a, b) { return a.d - b.d; });
+    var labelSet = {};
+    for (var k = 0; k < ranking.length && k < 10; k++) labelSet[ranking[k].id] = 1;
+    if (profileDataState.best) labelSet[profileDataState.best.arch.id] = 1;
+
     for (var i = 0; i < ARCHETYPES.length; i++) {
       var a = ARCHETYPES[i];
       var c = coordsOf(a.vec);
       var x = cx + c.x * half, y = cy - c.y * half;
-      out += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3.4" fill="#8f9bb3" fill-opacity=".85" />' +
-        '<text x="' + (x + 6).toFixed(1) + '" y="' + (y + 4).toFixed(1) + '" class="chart-label small">' + a.name + '</text>';
+      out += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3.4" fill="#8f9bb3" fill-opacity=".85" />';
+      if (labelSet[a.id]) {
+        out += '<text x="' + (x + 6).toFixed(1) + '" y="' + (y + 4).toFixed(1) + '" class="chart-label small">' + a.name + '</text>';
+      }
     }
-    var pc = coordsOf(pct);
     var px = cx + pc.x * half, py = cy - pc.y * half;
     out += '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="9" fill="rgba(201,167,101,.28)" />' +
       '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="4.6" fill="#c9a765" />' +

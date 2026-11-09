@@ -1,4 +1,4 @@
-﻿/* 数据自检：结构、表情、证据解锁、伦理选项、哲人评议 */
+/* 数据自检：结构、表情、证据解锁、伦理选项、哲人评议 */
 const path = require("path");
 global.window = {};
 const root = path.join(__dirname, "..");
@@ -10,8 +10,10 @@ for (let i = 1; i <= 5; i++) require(path.join(root, "js/anime/a" + i + ".js"));
 const SP = ["judge", "prosecutor", "defense", "defendant", "witnessF", "witnessM", "narr"];
 const EM = ["neutral", "stern", "sad", "soft"];
 const DIMS = ["proc", "right", "effect", "virtue", "order", "mercy"];
-const THINKERS = ["kant", "mill", "rawls", "bentham", "aristotle", "beccaria", "confucius", "hanfei"];
+/* 评议席必须覆盖的八位核心哲人；其余扩展哲人允许用通用评语回退 */
+const CORE_THINKERS = ["kant", "mill", "rawls", "bentham", "aristotle", "beccaria", "confucius", "hanfei"];
 let errors = 0, warns = 0;
+const TITLES = new Set();
 function err(m) { errors++; console.log("  [ERR] " + m); }
 function warn(m) { warns++; console.log("  [WARN] " + m); }
 
@@ -34,11 +36,19 @@ function texts(c) {
 
 function checkVersion(V) {
   console.log("\n== " + V.id + " · " + V.cases.length + " 案 ==");
-  if (V.thinkers.length !== 8) err(V.id + " thinkers=" + V.thinkers.length);
+  if (!Array.isArray(V.thinkers) || V.thinkers.length < 8) err(V.id + " thinkers=" + (V.thinkers || []).length);
+  const tid = new Set();
+  (V.thinkers || []).forEach(function (t) {
+    if (!t.id || !t.name || !t.tag || !t.line) err(V.id + " thinker 字段不全 " + JSON.stringify(t));
+    if (tid.has(t.id)) err(V.id + " thinker id 重复 " + t.id);
+    tid.add(t.id);
+  });
   const looks = V.looks || {};
   V.cases.forEach(c => {
     const tag = (c.id || "?") + " " + c.title;
     console.log("- " + tag);
+    if (TITLES.has(c.title)) err(tag + " 标题重复");
+    TITLES.add(c.title);
     if (!(c.nodes || []).length) err(tag + " 无节点");
     const evidNodes = (c.nodes || []).filter(n => !n.talk);
     const talkNodes = (c.nodes || []).filter(n => n.talk);
@@ -70,7 +80,7 @@ function checkVersion(V) {
       });
       if (!n.branch) err(nt + " 无 branch");
       else {
-        if (n.branch.options.length < 4) err(nt + " 选项 " + n.branch.options.length);
+        if (n.branch.options.length < 5) err(nt + " 选项 " + n.branch.options.length);
         n.branch.options.forEach((o, oi) => {
           Object.keys(o.tags || {}).forEach(k => {
             if (!DIMS.includes(k)) err(nt + " opt" + oi + " tag=" + k);
@@ -85,8 +95,8 @@ function checkVersion(V) {
       });
     });
     if ((c.ethics.options || []).length < 5) err(tag + " ethics 选项 " + c.ethics.options.length);
-    THINKERS.forEach(k => { if (!c.consult || !c.consult[k]) err(tag + " consult 缺 " + k); });
-    (c.consult ? Object.keys(c.consult) : []).forEach(k => { if (!THINKERS.includes(k)) warn(tag + " consult 多余键 " + k); });
+    CORE_THINKERS.forEach(k => { if (!c.consult || !c.consult[k]) err(tag + " consult 缺 " + k); });
+    (c.consult ? Object.keys(c.consult) : []).forEach(k => { if (!tid.has(k)) warn(tag + " consult 多余键 " + k); });
   });
 }
 
