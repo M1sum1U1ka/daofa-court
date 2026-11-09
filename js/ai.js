@@ -4,7 +4,7 @@
 (function () {
   "use strict";
 
-  var KEY = "daofa.ai.v1";
+  var KEY = "daofa.ai.v2";
   var DEF = { baseUrl: "https://open.bigmodel.cn/api/paas/v4", model: "glm-5.3-flash", apiKey: "af65f0d5b4fe469da037b3ac25b54ca3.jg8F1JWDAY2UXX79" };
 
   function load() {
