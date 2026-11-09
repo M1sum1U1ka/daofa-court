@@ -86,6 +86,67 @@
   function worse(a, b) { return rank(a) <= rank(b) ? a : b; }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
+  /* ================= 人物配音 =================
+     线路音由 tools/voicegen.py 预生成，文件名 = FNV-1a(显示名 + \\u0001 + 台词)。
+     清单 audio/voice/{version}/manifest.json 存在才播放；缺失时静默降级。 */
+  var voiceEl = null;
+  var voiceOn = true;
+  try { voiceOn = localStorage.getItem("daofa.voice.v1") !== "0"; } catch (e) {}
+  var voiceMans = {};
+
+  function fnv(str) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      /* 16777619 = 2^24+2^8+2^7+2^4+2^1+1，移位相乘保证 32 位精确，与 tools/export-voice.js 一致 */
+      h = (h + ((h << 1) >>> 0) + ((h << 4) >>> 0) + ((h << 7) >>> 0) + ((h << 8) >>> 0) + ((h << 24) >>> 0)) >>> 0;
+    }
+    return ("0000000" + h.toString(16)).slice(-8);
+  }
+
+  function loadVoiceMan(version) {
+    if (voiceMans[version] !== undefined) return;
+    voiceMans[version] = null;
+    try {
+      fetch("audio/voice/" + version + "/manifest.json", { cache: "force-cache" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (o) { voiceMans[version] = o && typeof o === "object" ? o : null; })
+        .catch(function () {});
+    } catch (e) {}
+  }
+
+  function stopVoice() {
+    if (voiceEl) {
+      try { voiceEl.pause(); } catch (e) {}
+      voiceEl = null;
+    }
+    var bg = tracks[bgmName];
+    if (bg) bg.volume = 0.24;
+  }
+
+  function speak(ln, info) {
+    if (!ln || !ln.t || !S) return;
+    var name = info ? info.name : "旁白";
+    var key = fnv(name + "\u0001" + ln.t);
+    if (S.lastVoiceKey === key) return;
+    S.lastVoiceKey = key;
+    stopVoice();
+    if (!voiceOn) return;
+    var man = voiceMans[S.version];
+    if (!man || !man[key]) return;
+    var a = new Audio("audio/voice/" + S.version + "/" + key + ".mp3");
+    a.volume = 0.95;
+    a.onended = function () {
+      var bg = tracks[bgmName];
+      if (bg) bg.volume = 0.24;
+    };
+    voiceEl = a;
+    var bg = tracks[bgmName];
+    if (bg) bg.volume = 0.07;
+    var p = a.play();
+    if (p && p.catch) p.catch(function () {});
+  }
+
   function loadSave() {
     try {
       var raw = localStorage.getItem(SAVE_KEY);
@@ -122,6 +183,7 @@
   function renderLanding() {
     view = "landing";
     S = null;
+    stopVoice();
     closeCaseOpening();
     clearBg();
     document.body.dataset.version = "";
@@ -146,6 +208,13 @@
           '<div class="ts-gates">' +
             gateHTML("real", VERSIONS.real) +
             gateHTML("anime", VERSIONS.anime) +
+          '</div>' +
+          '<div class="ts-film">' +
+            '<div class="ts-film-txt"><b>法庭演出影像</b><span>两版各有一段生成影像。可以不进庭审，先看片。</span></div>' +
+            '<div class="ts-film-btns">' +
+              '<button class="film-btn" data-filmver="real"><i>▶</i>真实卷宗 · 演出影像</button>' +
+              '<button class="film-btn" data-filmver="anime"><i>▶</i>二次元法庭 · 演出影像</button>' +
+            '</div>' +
           '</div>' +
           aiBandHTML() +
           '<div class="ts-foot">' +
@@ -198,6 +267,8 @@
     if (!VERSIONS[version]) return;
     S = { version: version, V: VERSIONS[version] };
     view = "hub";
+    stopVoice();
+    loadVoiceMan(version);
     closeCaseOpening();
     clearBg();
     document.body.dataset.version = version;
@@ -238,6 +309,7 @@
           '</div>' +
           '<div class="hub-side">' +
             '<div class="hub-count">已通审 ' + done + ' / ' + V.cases.length + '</div>' +
+            '<button class="btn film-btn" data-act="film">▶ 演出影像</button>' +
             (picked ? '<button class="btn profile-btn" data-act="profile">审判者画像 · ' + picked + ' 次判断</button>' : '') +
           '</div>' +
         '</div>' +
@@ -318,10 +390,12 @@
       bgShown: "",
       aiChat: [], aiDraft: "", aiBusy: false,
       lineKind: "line",
-      skim: false
+      skim: false,
+      lastVoiceKey: ""
     };
     view = "trial";
     playBGM("court");
+    loadVoiceMan(version);
     preloadCase(c);
     playLines(c.recon, startOpening, "recon");
     playCaseOpening(c);
@@ -332,15 +406,18 @@
   function closeCaseOpening() {
     clearTimeout(openingTimer);
     var el = document.getElementById("caseOpen");
-    if (el) { el.classList.remove("on"); el.innerHTML = ""; }
+    if (el) { el.classList.remove("on", "is-film"); el.innerHTML = ""; }
   }
   function playCaseOpening(c) {
     var el = document.getElementById("caseOpen");
     if (!el) return;
     closeCaseOpening();
+    var vid = S && S.V && S.V.meta ? S.V.meta.courtVideo : "";
     el.innerHTML =
+      (vid ? '<video class="co-video" src="' + esc(vid) + '" poster="' + esc(c.bg || (S && S.V ? S.V.meta.bg : "")) + '" muted autoplay loop playsinline preload="auto"></video>' : "") +
+      '<div class="co-shade"></div>' +
       '<div class="co-panel">' +
-        '<div class="co-no">' + esc(c.no) + '<span>·</span>' + esc(c.cause || "重审") + '</div>' +
+        '<div class="co-no">开场影像<span>·</span>' + esc(c.no) + '<span>·</span>' + esc(c.cause || "重审") + '</div>' +
         '<h2 class="co-title">' + esc(c.title) + '</h2>' +
         '<p class="co-sub">' + esc(c.subtitle || "") + '</p>' +
         '<div class="co-line"></div>' +
@@ -348,6 +425,8 @@
         '<div class="co-tip">点击跳过 ▾</div>' +
       '</div>';
     el.classList.add("on");
+    var v = el.querySelector("video.co-video");
+    if (v) { var pp = v.play(); if (pp && pp.catch) pp.catch(function () {}); }
     var closed = false;
     function done() {
       if (closed) return;
@@ -355,7 +434,30 @@
       closeCaseOpening();
     }
     el.onclick = done;
-    openingTimer = setTimeout(done, 3600);
+    openingTimer = setTimeout(done, 5600);
+  }
+
+  /* 目录里的“演出影像”入口：完整播放本版本的法庭演出片 */
+  function playFilm() {
+    if (S && S.V) playVersionFilm(S.version);
+  }
+  /* 标题页 / 目录共用：按版本播放完整演出片 */
+  function playVersionFilm(version) {
+    var V = VERSIONS[version];
+    var el = document.getElementById("caseOpen");
+    if (!el || !V) return;
+    var vid = V.meta.courtVideo || "";
+    if (!vid) { toast("本版本暂无演出影像"); return; }
+    closeCaseOpening();
+    el.innerHTML = '<video class="co-video is-film" src="' + esc(vid) + '" poster="' + esc(V.meta.bg) + '" controls autoplay playsinline preload="auto"></video>' +
+      '<div class="co-film-bar"><span>演出影像 · ' + esc(V.meta.title) + '</span>' +
+      '<button class="co-film-close" data-film-close="1">关闭 ×</button></div>';
+    el.classList.add("on", "is-film");
+    el.onclick = function (e) {
+      if (e.target === el || (e.target && e.target.getAttribute("data-film-close"))) closeCaseOpening();
+    };
+    var v = el.querySelector("video");
+    if (v) { var pp = v.play(); if (pp && pp.catch) pp.catch(function () {}); }
   }
 
   /* ================= 证据在剧情中引出 ================= */
@@ -599,6 +701,7 @@
       '<button class="hud-btn" data-act="evidence">证据 ' + evCount() + '</button>' +
       '<button class="hud-btn" data-act="consult">求教</button>' +
       '<button class="hud-btn" data-act="ai">AI 质询</button>' +
+      '<button class="hud-btn hud-voice" data-act="voice" title="人物配音开关">' + (voiceOn ? "声" : "静") + '</button>' +
       '<button class="hud-btn hud-ai-cfg" data-act="aiSettings">⚙</button>' +
     '</header>';
   }
@@ -620,8 +723,11 @@
     var sameWho = S.lastPortrait === who;
     var prevImg = S.lastImg;
     var faceChange = sameWho && prevImg && prevImg !== info.img;
-    var ghostHead = faceChange ? '<div class="p-head ghost"><img src="' + esc(prevImg) + '" data-look="' + esc(S.lastBase || "") + '" data-fb="' + esc(info.fb) + '" alt=""></div>' : "";
-    var ghostBody = faceChange ? '<div class="p-body ghost"><img src="' + esc(prevImg) + '" data-look="' + esc(S.lastBase || "") + '" data-fb="' + esc(info.fb) + '" alt=""></div>' : "";
+    /* 单图整体微动：不再把头与身体拆成两层，从根本上消除脸与脖子的错位接缝。
+       换表情时旧图整张淡出、新图淡入，配合呼吸与鼠标视差。 */
+    var ghost = faceChange
+      ? '<div class="p-face p-ghost"><img src="' + esc(prevImg) + '" data-look="' + esc(S.lastBase || "") + '" data-fb="' + esc(info.fb) + '" alt=""></div>'
+      : "";
     S.lastPortrait = who;
     S.lastImg = info.img;
     S.lastBase = info.base || "";
@@ -629,10 +735,8 @@
     return '<figure class="portrait portrait--' + info.cls + (sameWho ? " same" : "") + (faceChange ? " swap" : "") + (talking ? " talking" : "") + '">' +
       '<div class="portrait-body">' +
         '<div class="p-wrap">' +
-          ghostBody +
-          '<div class="p-body"><img src="' + esc(info.img) + '"' + lookAttr + ' alt="' + esc(info.name) + '"></div>' +
-          ghostHead +
-          '<div class="p-head"><img src="' + esc(info.img) + '"' + lookAttr + ' alt=""></div>' +
+          ghost +
+          '<div class="p-face p-live"><img src="' + esc(info.img) + '"' + lookAttr + ' alt="' + esc(info.name) + '"></div>' +
         '</div>' +
         '<span class="p-sheen" aria-hidden="true"></span>' +
       '</div>' +
@@ -660,15 +764,18 @@
     var head = info
       ? '<div class="speaker"><b>' + esc(info.name) + '</b><span>' + esc(info.role) + '</span></div>'
       : "";
-    return '<div class="node-head"><span class="dot"></span>关键节点 ' + (S.node + 1) + ' / ' + S.c.nodes.length +
-        '<span class="node-tip">此处必须出示证据</span></div>' +
+    var tip = n.talk ? '<span class="node-tip talk">继续听审</span>' : '<span class="node-tip">此处必须出示证据</span>';
+    var actions = n.talk
+      ? (n.press ? '<button class="btn" data-act="pressNode">追问</button>' : '') +
+        '<button class="btn" data-act="ai">AI 质询</button>' +
+        '<button class="btn btn-primary" data-act="talkNext">继续 →</button>'
+      : (n.press ? '<button class="btn" data-act="pressNode">追问</button>' : '') +
+        '<button class="btn" data-act="ai">AI 质询</button>' +
+        '<button class="btn btn-primary" data-act="present">出示证据</button>';
+    return '<div class="node-head"><span class="dot"></span>关键节点 ' + (S.node + 1) + ' / ' + S.c.nodes.length + tip + '</div>' +
       head +
       '<p class="testi-text">' + esc(n.cue) + '</p>' +
-      '<div class="actions">' +
-        (n.press ? '<button class="btn" data-act="pressNode">追问</button>' : '') +
-        '<button class="btn" data-act="ai">AI 质询</button>' +
-        '<button class="btn btn-primary" data-act="present">出示证据</button>' +
-      '</div>';
+      '<div class="actions">' + actions + '</div>';
   }
 
   function renderTrial() {
@@ -678,6 +785,14 @@
     updateBg(sc.img, sc.court);
     var talking = S.lastLi !== S.li || S.tmode === "statement";
     S.lastLi = S.li;
+    if (!S.branchOpen && !S.drawer) {
+      if (S.phase === "nodes" && S.tmode === "statement") {
+        var nn = S.c.nodes[S.node];
+        if (nn) speak({ t: nn.cue }, info);
+      } else if (S.lines && S.lines[S.li]) {
+        speak(S.lines[S.li], info);
+      }
+    }
     var html = '<div class="' + cls + (S.phase === "recon" ? " is-recon" : "") + '">' +
       '<div class="trial-veil"></div>' +
       hudHTML() +
@@ -740,6 +855,22 @@
     var extra = unlockAllEvidence();
     if (extra.length) toast("跳过还原 · 其余 " + extra.length + " 份材料已入卷");
     playBGM("tense");
+    enterNode();
+  }
+
+  /* 进入节点：先播过渡对白（pre），再亮出需要质证的陈述 */
+  function enterNode() {
+    var n = S.c.nodes[S.node];
+    if (!n) { startClosing(); return; }
+    if (n.pre && n.pre.length) {
+      S.tmode = "lines";
+      playLines(n.pre, function () {
+        S.tmode = "statement";
+        renderTrial();
+      }, "pre");
+      return;
+    }
+    S.tmode = "statement";
     renderTrial();
   }
 
@@ -870,7 +1001,7 @@
     for (var i = 0; i < n.branch.options.length; i++) {
       var o = n.branch.options[i];
       opts += '<button class="eth-option" data-branch="' + i + '">' +
-        '<span class="eth-key">' + "ABC".charAt(i) + '</span>' +
+        '<span class="eth-key">' + "ABCDE".charAt(i) + '</span>' +
         '<div class="eth-body">' +
           '<div class="eth-name">' + esc(o.label) + '</div>' +
           '<p class="eth-detail">' + esc(o.detail || "") + '</p>' +
@@ -904,8 +1035,7 @@
     S.branchPick = null;
     S.node++;
     if (S.node < S.c.nodes.length) {
-      S.tmode = "statement";
-      renderTrial();
+      enterNode();
       return;
     }
     startClosing();
@@ -1180,9 +1310,9 @@
     return '<div class="drawer" data-drawer="1">' +
       '<div class="drawer-mask" data-act="close"></div>' +
       '<div class="drawer-panel">' +
-        '<div class="drawer-head"><h2 class="drawer-title">评议席 · 三位哲人</h2>' +
+        '<div class="drawer-head"><h2 class="drawer-title">评议席 · 八位哲人</h2>' +
           '<button class="drawer-close" data-act="close">关闭 ×</button></div>' +
-        '<p class="drawer-note">求教不改变任何结果，只提供三种看问题的方式。</p>' +
+        '<p class="drawer-note">求教不改变任何结果，只提供八种看问题的方式。同一份卷宗，八副眼睛。</p>' +
         '<div class="consult-grid">' + cards + '</div>' +
       '</div>' +
     '</div>';
@@ -1196,7 +1326,7 @@
     for (var i = 0; i < c.ethics.options.length; i++) {
       var o = c.ethics.options[i];
       opts += '<button class="eth-option" data-eth="' + i + '">' +
-        '<span class="eth-key">' + "ABC".charAt(i) + '</span>' +
+        '<span class="eth-key">' + "ABCDE".charAt(i) + '</span>' +
         '<div class="eth-body">' +
           '<div class="eth-name">' + esc(o.label) + '</div>' +
           '<p class="eth-detail">' + esc(o.detail) + '</p>' +
@@ -1545,11 +1675,29 @@
     }
     if (act === "aiSend") { aiSend(); return; }
     if (act === "landing") { renderLanding(); return; }
+    if (act === "film") { playFilm(); return; }
     if (act === "hub") { openHub(S.version); return; }
     if (act === "evidence") { openEvidence(false); return; }
     if (act === "consult") { S.drawer = "consult"; renderTrial(); return; }
     if (act === "close") { closeDrawer(); return; }
     if (act === "pressNode") { pressNode(); return; }
+    if (act === "talkNext") {
+      var tn = S.c.nodes[S.node];
+      if (tn && tn.branch && tn.branch.options && tn.branch.options.length) {
+        S.branchOpen = true;
+        S.tmode = "lines";
+        renderTrial();
+      } else nextNode();
+      return;
+    }
+    if (act === "voice") {
+      voiceOn = !voiceOn;
+      try { localStorage.setItem("daofa.voice.v1", voiceOn ? "1" : "0"); } catch (e2) {}
+      if (!voiceOn) stopVoice();
+      renderTrial();
+      toast(voiceOn ? "人物配音已开启" : "人物配音已关闭");
+      return;
+    }
     if (act === "present") { openEvidence(true); return; }
     if (act === "skipRecon") { skipRecon(); return; }
     if (act === "retry") { startCase(S.c.id); return; }
@@ -1563,6 +1711,9 @@
 
   app.addEventListener("click", function (e) {
     var t = e.target;
+    var fv = t.closest("[data-filmver]");
+    if (fv) { playVersionFilm(fv.getAttribute("data-filmver")); return; }
+
     var ver = t.closest("button[data-version]");
     if (ver) { openHub(ver.getAttribute("data-version")); return; }
 
@@ -1662,5 +1813,7 @@
   });
 
   /* ================= 启动 ================= */
+  loadVoiceMan("real");
+  loadVoiceMan("anime");
   renderLanding();
 })();

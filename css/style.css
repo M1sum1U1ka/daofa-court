@@ -269,15 +269,39 @@ body[data-version="anime"] {
 .ts-ai-btn:hover { color: #fff0cd; border-bottom-color: #fff0cd; }
 
 /* ============ 案件开场卡 ============ */
-.case-open { position: fixed; inset: 0; z-index: 60; display: none; }
+.case-open { position: fixed; inset: 0; z-index: 60; display: none; background: #04060a; }
 .case-open.on { display: grid; place-items: center; animation: coFade .45s ease both; }
 .case-open::before {
-  content: ""; position: absolute; inset: 0;
+  content: ""; position: absolute; inset: 0; z-index: 1;
   background:
-    radial-gradient(700px 420px at 50% 46%, rgba(10, 14, 20, .52), rgba(4, 6, 10, .86)),
-    linear-gradient(to bottom, rgba(4, 6, 10, .9), rgba(4, 6, 10, .82));
-  backdrop-filter: blur(2px);
+    radial-gradient(700px 420px at 50% 46%, rgba(10, 14, 20, .32), rgba(4, 6, 10, .78)),
+    linear-gradient(to bottom, rgba(4, 6, 10, .82), rgba(4, 6, 10, .7));
+  pointer-events: none;
 }
+.case-open .co-video {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%; object-fit: cover;
+  filter: saturate(.72) brightness(.56) contrast(1.06);
+}
+.case-open .co-shade {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(60% 60% at 50% 50%, transparent 30%, rgba(3, 4, 7, .55) 100%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .022) 0 1px, transparent 1px 3px);
+}
+.case-open.on .co-panel { z-index: 3; }
+.case-open.is-film { display: grid; place-items: center; padding: 3vh 2vw; }
+.case-open.is-film::before { display: none; }
+.case-open .co-video.is-film { position: relative; width: auto; height: 92vh; max-width: 96vw; object-fit: contain; filter: none; box-shadow: 0 40px 120px rgba(0,0,0,.7); }
+.co-film-bar {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 4;
+  display: flex; align-items: center; gap: 18px;
+  padding: 8px 14px; border: 1px solid rgba(217,181,112,.3);
+  background: rgba(6,9,14,.78); backdrop-filter: blur(8px);
+  font-size: 11.5px; letter-spacing: .18em; color: #d9c9a4;
+}
+.co-film-close { border: 0; background: none; color: #d9b570; letter-spacing: .14em; font-size: 11.5px; }
+
 @keyframes coFade { from { opacity: 0; } to { opacity: 1; } }
 .co-panel { position: relative; z-index: 2; text-align: center; padding: 30px 40px; max-width: 760px; }
 .co-no {
@@ -560,43 +584,51 @@ body[data-version="anime"] {
   transition: transform .35s ease-out;
   will-change: transform;
 }
-.p-wrap { position: relative; width: 100%; aspect-ratio: 3 / 4; }
-.p-wrap .p-body,
-.p-wrap .p-head { position: absolute; inset: 0; }
-.p-wrap img {
-  display: block; width: 100%; height: 100%; object-fit: cover;
+.p-wrap {
+  position: relative; width: 100%; aspect-ratio: 3 / 4;
+  overflow: hidden;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, .22);
   box-shadow: 0 26px 60px rgba(0, 0, 0, .6);
-  -webkit-mask-image: linear-gradient(to bottom, #000 58%, rgba(0,0,0,.55) 84%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 58%, rgba(0,0,0,.55) 84%, transparent 100%);
+  isolation: isolate;
 }
-/* 头身分层：头部小块跟随鼠标多走一点，身体少走一点，制造纵深
-   注意：两层必须重叠而不是留缝——头部显示上 63%，身体显示下 39%，分割线附近 2% 重叠 */
-.p-body {
-  clip-path: inset(61% 0 0 0);
-  transform: translate3d(calc(var(--mx, 0) * 2px), calc(var(--my, 0) * 1.4px), 0);
-  animation: breatheBody 5.6s ease-in-out infinite;
+.p-wrap .p-face { position: absolute; inset: 0; }
+.p-wrap img {
+  display: block; width: 100%; height: 100%; object-fit: cover;
+  border: 0; border-radius: 0; box-shadow: none;
+  /* 略微上移放大，裁掉生成图底部的水印；单图整体显示，脸与脖子永远同一张画面 */
+  transform: scale(1.055);
+  transform-origin: 50% 4%;
+  -webkit-mask-image: linear-gradient(to bottom, #000 60%, rgba(0,0,0,.78) 80%, transparent 97%);
+  mask-image: linear-gradient(to bottom, #000 60%, rgba(0,0,0,.78) 80%, transparent 97%);
 }
-.p-head {
-  clip-path: inset(0 0 37% 0);
-  transform-origin: 50% 100%;
-  transform: translate3d(calc(var(--mx, 0) * 4.4px), calc(var(--my, 0) * 3.2px), 0) rotate(calc(var(--mx, 0) * 1.4deg));
-  animation: breatheHead 5.6s ease-in-out infinite;
+/* 单图立绘：整张随呼吸起伏，避免任何头身分层造成的接缝 */
+.p-live {
+  transform-origin: 50% 88%;
+  animation: breathe 6.2s ease-in-out infinite;
+  will-change: transform;
 }
-@keyframes breatheBody {
-  0%, 100% { transform: translate3d(calc(var(--mx, 0) * 2px), calc(var(--my, 0) * 1.4px), 0); }
-  50% { transform: translate3d(calc(var(--mx, 0) * 2px), calc(var(--my, 0) * 1.4px - 3px), 0); }
-}
-@keyframes breatheHead {
-  0%, 100% { transform: translate3d(calc(var(--mx, 0) * 4.4px), calc(var(--my, 0) * 3.2px), 0) rotate(calc(var(--mx, 0) * 1.4deg)); }
-  50% { transform: translate3d(calc(var(--mx, 0) * 4.4px), calc(var(--my, 0) * 3.2px - 2px), 0) rotate(calc(var(--mx, 0) * 1.4deg + .5deg)); }
+@keyframes breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.006); }
 }
 /* 立绘底盘：图片加载中或缺失时不露白 */
 .p-wrap {
   background:
     radial-gradient(120% 90% at 50% 12%, rgba(217, 181, 112, .1), transparent 62%),
     linear-gradient(165deg, #16202f, #0a0f17 58%);
+}
+/* 底部压暗：藏住生成图角落的标记，同时托起姓名牌 */
+.portrait:not(.img-dead) .p-wrap::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 27%;
+  background: linear-gradient(to top, rgba(5, 8, 13, .92), rgba(5, 8, 13, .5) 44%, transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+.trial.v-real .portrait:not(.img-dead) .p-wrap::after {
+  background: linear-gradient(to top, rgba(20, 16, 12, .9), rgba(20, 16, 12, .42) 44%, transparent);
 }
 .portrait.img-dead .p-wrap {
   border: 1px solid rgba(255, 255, 255, .16);
@@ -610,22 +642,24 @@ body[data-version="anime"] {
   font-size: 11.5px; letter-spacing: .2em;
   color: #8493aa; text-align: center; padding: 0 18px;
 }
-/* 换表情：旧图淡出，新图淡入（头、身各自交叉） */
-.p-wrap .ghost { animation: faceOut .4s ease forwards; pointer-events: none; }
-.p-wrap .ghost img { box-shadow: none; }
-.portrait.swap .p-body:not(.ghost) img,
-.portrait.swap .p-head:not(.ghost) img { animation: faceIn .45s ease both; }
-@keyframes faceIn { from { opacity: 0; } to { opacity: 1; } }
+/* 换表情：旧图整张淡出，新图淡入 */
+.p-ghost { animation: faceOut .42s ease forwards; pointer-events: none; z-index: 1; }
+.p-ghost img { box-shadow: none; }
+.portrait.swap .p-live img { animation: faceIn .5s ease both; }
+@keyframes faceIn {
+  from { opacity: 0; filter: brightness(1.25) blur(1.4px); }
+  to { opacity: 1; filter: none; }
+}
 @keyframes faceOut { from { opacity: 1; } to { opacity: 0; } }
 /* 发言弹动 */
-.portrait.talking .p-wrap { animation: talkLift .5s cubic-bezier(.2, .8, .3, 1); }
+.portrait.talking .p-wrap { animation: talkLift .55s cubic-bezier(.2, .8, .3, 1); }
 @keyframes talkLift {
   0% { transform: translateY(0) scale(1); }
-  35% { transform: translateY(-7px) scale(1.006); }
+  35% { transform: translateY(-7px) scale(1.008); }
   100% { transform: translateY(0) scale(1); }
 }
 /* 光扫 */
-.p-sheen { position: absolute; inset: 0; overflow: hidden; pointer-events: none; border-radius: 4px; }
+.p-sheen { position: absolute; inset: 0; overflow: hidden; pointer-events: none; border-radius: 5px; }
 .p-sheen::after {
   content: "";
   position: absolute; top: -20%; left: -45%;
@@ -639,8 +673,26 @@ body[data-version="anime"] {
   70% { opacity: 1; }
   86%, 100% { transform: translateX(520%) rotate(8deg); opacity: 0; }
 }
+/* 立绘外框：金色细线 + 四角刻线，像被装进一册卷宗 */
+.portrait-body::before {
+  content: ""; position: absolute; inset: -7px; pointer-events: none;
+  border: 1px solid rgba(217, 181, 112, .26);
+}
+.portrait-body::after {
+  content: ""; position: absolute; inset: -7px; pointer-events: none;
+  background:
+    linear-gradient(#d9b570, #d9b570) left top / 22px 1px no-repeat,
+    linear-gradient(#d9b570, #d9b570) left top / 1px 22px no-repeat,
+    linear-gradient(#d9b570, #d9b570) right top / 22px 1px no-repeat,
+    linear-gradient(#d9b570, #d9b570) right top / 1px 22px no-repeat,
+    linear-gradient(#d9b570, #d9b570) left bottom / 22px 1px no-repeat,
+    linear-gradient(#d9b570, #d9b570) left bottom / 1px 22px no-repeat,
+    linear-gradient(#d9b570, #d9b570) right bottom / 22px 1px no-repeat,
+    linear-gradient(#d9b570, #d9b570) right bottom / 1px 22px no-repeat;
+  opacity: .55;
+}
 @media (prefers-reduced-motion: reduce) {
-  .p-body, .p-head, .portrait.talking .p-wrap, .p-sheen::after { animation: none !important; }
+  .p-live, .portrait.talking .p-wrap, .p-sheen::after { animation: none !important; }
   .portrait-body { transform: none; }
 }
 .portrait-cap {
@@ -1245,3 +1297,124 @@ body[data-version="anime"] {
 .ai-dim { color: var(--muted); }
 .ai-err { color: #a8443a; }
 .ai-loading { font-size: 13px; color: var(--muted); animation: breathe 1.4s ease infinite; }
+
+/* ================= 视觉打磨层 ================= */
+/* 标题页 · 演出影像入口 */
+.ts-film {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 14px 20px;
+  margin-top: 18px; padding: 16px 20px;
+  border: 1px solid rgba(217, 181, 112, .24);
+  background:
+    linear-gradient(90deg, rgba(217, 181, 112, .1), rgba(9, 13, 20, .4) 58%, rgba(9, 13, 20, .18)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .02) 0 1px, transparent 1px 5px);
+  position: relative;
+  animation: tsFade 1s .85s both;
+}
+.ts-film::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: linear-gradient(180deg, #d9b570, rgba(217, 181, 112, .1));
+}
+.ts-film-txt b {
+  display: block; margin-bottom: 5px;
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 14px; letter-spacing: .22em; color: #ecdfc4;
+}
+.ts-film-txt span { font-size: 11.5px; letter-spacing: .05em; color: #8d99ab; }
+.ts-film-btns { display: flex; flex-wrap: wrap; gap: 10px; }
+.film-btn {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 9px 17px;
+  border: 1px solid rgba(217, 181, 112, .42);
+  background: rgba(217, 181, 112, .08);
+  color: #f0e2c2;
+  font-size: 12px; letter-spacing: .1em;
+  transition: background .25s, border-color .25s, transform .2s, box-shadow .25s;
+}
+.film-btn i { font-style: normal; font-size: 9px; color: #d9b570; letter-spacing: 0; }
+.film-btn:hover {
+  background: rgba(217, 181, 112, .2);
+  border-color: #e7c98c;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .38);
+}
+.btn.film-btn { border-color: rgba(217, 181, 112, .5); background: rgba(217, 181, 112, .1); color: #f2e5c8; }
+.btn.film-btn:hover { background: rgba(217, 181, 112, .24); }
+
+/* 全站极薄噪点与暗角，压住生成图的塑料感 */
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: 40;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 82% at 50% 48%, transparent 56%, rgba(0, 0, 0, .26) 100%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .013) 0 1px, transparent 1px 2px);
+}
+body[data-version="real"]::after {
+  background:
+    radial-gradient(120% 82% at 50% 48%, transparent 60%, rgba(58, 40, 18, .17) 100%),
+    repeating-linear-gradient(0deg, rgba(96, 66, 32, .02) 0 1px, transparent 1px 3px);
+}
+
+/* 目录案件卡：左侧竖线、扫光、序号描边 */
+.case-card { position: relative; overflow: hidden; }
+.case-card::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, var(--accent), transparent 88%);
+  opacity: 0; transition: opacity .3s;
+}
+.case-card:hover::before { opacity: .9; }
+.case-card::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(118deg, transparent 32%, rgba(255, 255, 255, .07) 46%, transparent 60%);
+  transform: translateX(-130%);
+  transition: transform .9s cubic-bezier(.2, .7, .2, 1);
+}
+.case-card:hover::after { transform: translateX(130%); }
+.case-no { font-size: 17px; font-weight: 600; }
+
+/* 对话框四角刻线 */
+.dialog-inner::before, .dialog-inner::after {
+  content: ""; position: absolute; width: 15px; height: 15px;
+  pointer-events: none; opacity: .62;
+}
+.dialog-inner::before {
+  left: 7px; top: 7px;
+  border-left: 1px solid var(--accent); border-top: 1px solid var(--accent);
+}
+.dialog-inner::after {
+  right: 7px; bottom: 7px;
+  border-right: 1px solid var(--accent); border-bottom: 1px solid var(--accent);
+}
+
+/* HUD 与滚动条 */
+.hud { backdrop-filter: blur(12px) saturate(1.08); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: rgba(0, 0, 0, .16); }
+::-webkit-scrollbar-thumb {
+  background: rgba(217, 181, 112, .3); border-radius: 999px;
+  border: 2px solid transparent; background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 181, 112, .52);
+  border: 2px solid transparent; background-clip: padding-box;
+}
+
+/* 主按钮扫光 */
+.btn-primary { position: relative; overflow: hidden; }
+.btn-primary::after {
+  content: ""; position: absolute; top: 0; left: -70%; width: 45%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .5), transparent);
+  transform: skewX(-18deg);
+  animation: btnShine 4.2s ease-in-out infinite;
+}
+@keyframes btnShine { 0%, 62% { left: -70%; } 100% { left: 130%; } }
+
+@media (max-width: 640px) {
+  .ts-film { flex-direction: column; align-items: flex-start; }
+  .ts-film-btns { width: 100%; }
+  .ts-film-btns .film-btn { flex: 1 1 auto; justify-content: center; }
+  .case-card { grid-template-columns: 52px 1fr auto; gap: 12px; padding: 16px 16px; }
+  .case-no { font-size: 14px; padding-right: 8px; }
+  .dialog-inner { min-height: 150px; padding: 16px; }
+  .dialog-inner::before, .dialog-inner::after { width: 10px; height: 10px; }
+}

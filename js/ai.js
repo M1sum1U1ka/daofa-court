@@ -5,20 +5,20 @@
   "use strict";
 
   var KEY = "daofa.ai.v1";
-  var DEF = { baseUrl: "https://api.deepseek.com/v1", model: "deepseek-chat", apiKey: "" };
+  var DEF = { baseUrl: "https://open.bigmodel.cn/api/paas/v4", model: "glm-5.3-flash", apiKey: "af65f0d5b4fe469da037b3ac25b54ca3.jg8F1JWDAY2UXX79" };
 
   function load() {
     try {
       var raw = localStorage.getItem(KEY);
       var o = raw ? JSON.parse(raw) : null;
-      if (!o || typeof o !== "object") return { baseUrl: DEF.baseUrl, model: DEF.model, apiKey: "" };
+      if (!o || typeof o !== "object") return { baseUrl: DEF.baseUrl, model: DEF.model, apiKey: DEF.apiKey };
       return {
         baseUrl: String(o.baseUrl || DEF.baseUrl),
         model: String(o.model || DEF.model),
-        apiKey: String(o.apiKey || "")
+        apiKey: String(o.apiKey || DEF.apiKey)
       };
     } catch (e) {
-      return { baseUrl: DEF.baseUrl, model: DEF.model, apiKey: "" };
+      return { baseUrl: DEF.baseUrl, model: DEF.model, apiKey: DEF.apiKey };
     }
   }
 
@@ -40,7 +40,8 @@
   function endpoint(baseUrl) {
     var u = String(baseUrl || "").replace(/\s+/g, "").replace(/\/+$/, "");
     if (!/\/chat\/completions$/.test(u)) u += "/chat/completions";
-    return u;
+    /* 智谱网关只有带尾斜杠的路径才返回 CORS 预检头，浏览器直连必须保留 */
+    return u + "/";
   }
 
   function chat(messages, opts, cb) {
@@ -59,14 +60,15 @@
 
     timer = setTimeout(function () {
       if (ctrl) { try { ctrl.abort(); } catch (e) {} }
-      finish({ ok: false, error: "请求超时（30 秒）" });
-    }, 30000);
+      finish({ ok: false, error: "请求超时（60 秒）" });
+    }, 60000);
 
     var body = {
       model: st.model || DEF.model,
       messages: messages,
       temperature: opts && opts.temperature != null ? opts.temperature : 0.7,
-      max_tokens: opts && opts.maxTokens ? opts.maxTokens : 700,
+      max_tokens: opts && opts.maxTokens ? opts.maxTokens : 900,
+      reasoning_effort: (opts && opts.effort) || "low",
       stream: false
     };
 
@@ -138,7 +140,7 @@
         "只能依据下面给出的卷宗事实回答，不得编造新证据、新人物、新的鉴定结论或新的时间线。\n" +
         "问题超出卷宗范围时，直接说「卷宗里没有这一项」，并指出可以去看哪份材料。\n" +
         "回答 120 字以内，口语、具体，尽量点出依据的材料名称。\n" +
-        "不要替玩家做判决，不要讲大道理。\n\n" +
+        "不要替玩家做判决，不要讲大道理，不要使用表情符号。\n\n" +
         toneOf(ctx.version) + "\n\n" + caseFacts(ctx)
     }];
     for (var i = 0; i < history.length; i++) {
@@ -147,7 +149,7 @@
       msgs.push({ role: m.role === "q" ? "user" : "assistant", content: m.text });
     }
     msgs.push({ role: "user", content: question });
-    chat(msgs, { temperature: 0.6, maxTokens: 450 }, cb);
+    chat(msgs, { temperature: 0.6, maxTokens: 700 }, cb);
   }
 
   /* 2. 证据关联性裁定 */
@@ -163,7 +165,7 @@
       role: "user",
       content: "材料：" + evd.name + "（" + evd.type + "）\n内容：" + evd.doc + "\n\n这件材料能否解释当前陈述？"
     }];
-    chat(msgs, { temperature: 0.2, maxTokens: 220 }, function (res) {
+    chat(msgs, { temperature: 0.2, maxTokens: 400 }, function (res) {
       if (!res || !res.ok) {
         cb({ valid: false, reason: "", error: (res && res.error) || "核验失败" });
         return;
@@ -199,7 +201,7 @@
         (ctx.lesson ? "\n真实判例要旨：" + ctx.lesson : "") +
         "\n请写出这段说理。"
     }];
-    chat(msgs, { temperature: 0.5, maxTokens: 700 }, cb);
+    chat(msgs, { temperature: 0.5, maxTokens: 1000 }, cb);
   }
 
   /* 4. 审判者画像点评 */
@@ -221,14 +223,14 @@
         "相似度最高的思想家：" + ctx.thinker + "（" + ctx.school + "）\n判断次数：" + ctx.count +
         "\n维度得分：" + dims.join("，") + "\n关键判断：\n" + picks.join("\n")
     }];
-    chat(msgs, { temperature: 0.6, maxTokens: 650 }, cb);
+    chat(msgs, { temperature: 0.6, maxTokens: 900 }, cb);
   }
 
   function test(cb) {
     chat([
       { role: "system", content: "你是连接测试助手。只回复：连接正常。" },
       { role: "user", content: "测试" }
-    ], { temperature: 0, maxTokens: 20 }, function (res) {
+    ], { temperature: 0, maxTokens: 300 }, function (res) {
       if (res && res.ok) cb({ ok: true, text: res.text || "连接正常" });
       else cb({ ok: false, error: (res && res.error) || "未知错误" });
     });
