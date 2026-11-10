@@ -80,7 +80,7 @@ window.DATA_REAL.cases.push({
     { sp: "judge", t: "原告，读诉讼请求。" },
     { sp: "prosecutor", t: "请求判令被告赔偿死亡赔偿金、丧葬费、精神损害抚慰金，共计两百余万元。" },
     { sp: "prosecutor", t: "事实和理由：2016年11月3日，被告先行入室，将房门反锁，致江歌滞留门外，被陈世峰杀害。" },
-    { sp: "defense", t: "审判长，我打断一句。陈世峰是凶手，刑事判决写得很清楚。被告也是受害人。" },
+    { sp: "defense", t: "审判长，请允许我补充一点。陈世峰是凶手，刑事判决写得很清楚。被告也是受害人。" },
     { sp: "judge", t: "代理人，等原告读完。" },
     { sp: "defense", t: "……好。" },
     { sp: "judge", t: "原告继续。" },
@@ -108,7 +108,7 @@ window.DATA_REAL.cases.push({
         { sp: "witnessF", who: "刘暖曦", role: "被告", t: "我说的都是真的。" },
         { sp: "prosecutor", t: "你说你没想到。陈世峰之前砸过门，你知道吗？" },
         { sp: "witnessF", who: "刘暖曦", role: "被告", t: "……知道。" },
-        { sp: "judge", t: "知道就说知道，不知道就说不知道。" },
+        { sp: "judge", t: "证人应如实陈述，知之为知之，不知为不知。" },
         { sp: "witnessF", who: "刘暖曦", role: "被告", t: "知道。", em: "sad" },
         { sp: "narr", t: "她把手放在桌沿上，指头收了一下。" },
         { sp: "judge", t: "记入笔录。" }
@@ -164,8 +164,8 @@ window.DATA_REAL.cases.push({
     {
       sp: "witnessF", who: "刘暖曦", role: "被告", talk: true,
       pre: [
-        { sp: "judge", t: "证人退庭。原告代理人，你还要问什么？" },
-        { sp: "prosecutor", t: "我问案发以后的事。被告，案发半个多月，你给江歌妈妈发过一条短信，是吧。" },
+        { sp: "judge", t: "证人退庭。原告代理人是否还有发问？" },
+        { sp: "prosecutor", t: "辩护人将就案发后的事实发问。被告，案发半个多月，你给江歌母亲发过一条短信，是吗。" },
         { sp: "witnessF", who: "刘暖曦", role: "被告", t: "发过。" },
         { sp: "prosecutor", t: "你念一下。" },
         { sp: "witnessF", who: "刘暖曦", role: "被告", t: "……我记不清原话。" }
@@ -179,7 +179,7 @@ window.DATA_REAL.cases.push({
         { sp: "narr", t: "屏幕上那行字不长。法庭把时间、号码、内容念了一遍。" },
         { sp: "judge", t: "被告，这条短信是你发的吗？" },
         { sp: "witnessF", who: "刘暖曦", role: "被告", t: "……是。" },
-        { sp: "judge", t: "为什么发？" },
+        { sp: "judge", t: "请说明发送该短信的原因。" },
         { sp: "witnessF", who: "刘暖曦", role: "被告", t: "我怕。我怕他们一直找我。", em: "sad" },
         { sp: "narr", t: "旁听席上有人吸了一下鼻子。江秋莲没抬头。" },
         { sp: "judge", t: "怕，可以理解。发出去的话，收不回来。" }
@@ -238,7 +238,7 @@ window.DATA_REAL.cases.push({
       pre: [
         { sp: "judge", t: "再说案发之前。被告，陈世峰威胁过你几次？" },
         { sp: "witnessF", who: "刘暖曦", role: "被告", t: "……两三次。" },
-        { sp: "judge", t: "砸门呢？" },
+        { sp: "judge", t: "关于砸门一节，请继续陈述。" },
         { sp: "witnessF", who: "刘暖曦", role: "被告", t: "有一次。" },
         { sp: "judge", t: "这些，你告诉江歌了吗？" }
       ],
@@ -278,7 +278,7 @@ window.DATA_REAL.cases.push({
     { sp: "prosecutor", t: "她让我念一句：我不要她的钱。我要她把那天晚上做过的事，说清楚。" },
     { sp: "defense", t: "被告报了警，没拿刀。让她赔全部，等于让一个吓坏的人替凶手负责。" },
     { sp: "prosecutor", t: "我们没要她赔全部。我们要她为『锁上门以后什么也没做』，负她那一份。" },
-    { sp: "judge", t: "我问一句。一个人因为帮朋友，把自己搭进去了。被帮的那个人，最起码该做什么？", em: "neutral" },
+    { sp: "judge", t: "法庭询问：一个人因帮助朋友而身处险境，被帮助者应承担何种义务？", em: "neutral" },
     { sp: "defense", t: "最起码，别把门锁上。再往上，是喊人、报警、拉一把。" },
     { sp: "witnessF", who: "刘暖曦", role: "被告", t: "……对不起。", em: "sad" },
     { sp: "narr", t: "她说得很轻。旁听席上没有回应。江秋莲把保温杯往怀里挪了挪。" },

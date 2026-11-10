@@ -1461,6 +1461,92 @@ body[data-version="real"]::after {
 .ts-ai-item:hover { background: rgba(217, 181, 112, .08); transform: translateY(-2px); border-color: rgba(217, 181, 112, .42); }
 .ts-ai-state.on { box-shadow: 0 0 18px rgba(120, 200, 140, .18); }
 
+/* ---------- 标题页 · 伦理群像 ---------- */
+.ts-pantheon {
+  margin-top: 18px; padding: 14px 0 10px;
+  border-top: 1px solid rgba(217, 181, 112, .18);
+  border-bottom: 1px solid rgba(217, 181, 112, .18);
+  animation: tsFade 1s .95s both;
+}
+.ts-panth-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
+.ts-panth-head b { font-family: "Songti SC", "STSong", serif; font-size: 13px; letter-spacing: .24em; color: #e6d5b2; }
+.ts-panth-head span { font-size: 10.5px; letter-spacing: .1em; color: #7f7462; }
+.ts-panth-track {
+  display: flex; gap: 12px; overflow-x: auto; padding: 4px 2px 8px;
+  scrollbar-width: thin; scrollbar-color: rgba(217,181,112,.35) transparent;
+}
+.thinker-chip { flex: 0 0 auto; width: 78px; text-align: center; }
+.thinker-chip img {
+  width: 58px; height: 58px; border-radius: 50%;
+  object-fit: cover;
+  filter: grayscale(1) brightness(.72) contrast(1.08);
+  border: 1px solid rgba(217, 181, 112, .26);
+  transition: filter .35s, transform .3s, border-color .3s;
+}
+.thinker-chip:hover img { filter: none; transform: translateY(-3px); border-color: rgba(240, 212, 156, .8); }
+.thinker-chip b { display: block; margin-top: 6px; font-size: 10.5px; letter-spacing: .08em; color: #cfc0a4; font-weight: 500; }
+.thinker-chip span { display: block; margin-top: 2px; font-size: 9px; color: #736858; letter-spacing: .04em; }
+
+/* ---------- 开场 PV ---------- */
+.pv { position: fixed; inset: 0; z-index: 60; background: #05070a; overflow: hidden; }
+.pv-scene {
+  position: absolute; inset: 0;
+  opacity: 0; pointer-events: none;
+  background-size: cover; background-position: center;
+  transition: opacity .9s ease;
+}
+.pv-scene.on { opacity: 1; animation: pvZoom 9s ease-out forwards; }
+@keyframes pvZoom { from { transform: scale(1.03); } to { transform: scale(1.13); } }
+.pv-shade {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, rgba(4, 6, 10, .94) 0%, rgba(4, 6, 10, .72) 38%, rgba(4, 6, 10, .22) 72%, rgba(4, 6, 10, .5) 100%),
+    linear-gradient(to top, rgba(4, 6, 10, .96) 0%, transparent 45%);
+}
+.pv-copy { position: absolute; left: clamp(26px, 8vw, 128px); bottom: 20%; max-width: 760px; z-index: 2; }
+.pv-kicker { font-size: 10.5px; letter-spacing: .44em; color: #d9b570; margin-bottom: 14px; }
+.pv-title {
+  margin: 0;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  font-size: clamp(46px, 7.2vw, 100px);
+  line-height: 1.06; letter-spacing: .12em;
+  background: linear-gradient(178deg, #fffaf0 4%, #f3e2bd 36%, #d9b570 74%, #a9823e 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 16px 46px rgba(0, 0, 0, .65));
+}
+.pv-rule { margin: 20px 0 16px; height: 1px; width: min(420px, 60vw); background: linear-gradient(90deg, #d9b570, rgba(217, 181, 112, 0)); }
+.pv-sub { margin: 0 0 12px; font-size: clamp(15px, 1.6vw, 19px); letter-spacing: .18em; color: #eadfc9; }
+.pv-body { margin: 0; max-width: 34em; font-size: 13px; line-height: 2; color: #a49b8a; }
+.pv-top {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 4;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px clamp(18px, 4vw, 48px);
+  font-size: 10.5px; letter-spacing: .22em; color: #8d816d;
+  background: linear-gradient(to bottom, rgba(4, 6, 10, .8), transparent);
+}
+.pv-skip { border: 1px solid rgba(217, 181, 112, .3); background: rgba(5, 8, 13, .5); color: #d9c9a4; padding: 7px 14px; font-size: 11px; letter-spacing: .12em; }
+.pv-skip:hover { border-color: #d9b570; color: #fff0cd; }
+.pv-dots { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); display: flex; gap: 9px; z-index: 4; }
+.pv-dots i { width: 28px; height: 2px; background: rgba(255, 255, 255, .16); transition: background .3s; }
+.pv-dots i.on { background: #d9b570; }
+.pv-enter { position: absolute; right: clamp(24px, 7vw, 110px); bottom: 9%; z-index: 5; opacity: 0; pointer-events: none; transition: opacity .5s; }
+.pv.at-end .pv-enter { opacity: 1; pointer-events: auto; }
+.pv-enter .btn { padding: 12px 26px; letter-spacing: .2em; }
+.ts-replay {
+  display: inline-block; margin-top: 14px;
+  border: 0; background: none; padding: 2px 0;
+  color: #8d816d; font-size: 11px; letter-spacing: .16em;
+  border-bottom: 1px solid rgba(217, 181, 112, .28);
+}
+.ts-replay:hover { color: #d9b570; border-bottom-color: #d9b570; }
+@media (max-width: 620px) {
+  .pv-copy { bottom: 24%; left: 22px; right: 22px; }
+  .pv-body { font-size: 12px; }
+  .pv-enter { right: 22px; bottom: 7%; }
+  .pv-dots { bottom: 22px; }
+}
+
 /* ---------- 目录 ---------- */
 .hub { position: relative; }
 .hub::before {
@@ -1675,6 +1761,57 @@ body[data-version="real"]::after {
 .ethics-sub { letter-spacing: .04em; }
 
 /* ---------- 判决 / 画像 ---------- */
+.profile-hero {
+  display: grid; grid-template-columns: 210px 1fr;
+  gap: clamp(18px, 3vw, 34px);
+  padding: 22px;
+  border: 1px solid var(--line);
+  background: linear-gradient(160deg, var(--panel), var(--panel-2));
+  position: relative;
+}
+.hero-portrait { position: relative; }
+.hero-portrait img {
+  display: block; width: 100%; aspect-ratio: 1;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  filter: saturate(.9) contrast(1.02);
+}
+.hero-stamp {
+  position: absolute; right: -8px; bottom: 12px;
+  padding: 5px 9px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 12px; letter-spacing: .18em;
+  background: var(--panel);
+  transform: rotate(-4deg);
+}
+.hero-body .profile-title { margin: 6px 0 6px; }
+.profile-school { margin: 0 0 12px; font-size: 14px; color: var(--muted); }
+.profile-school b { color: var(--accent); letter-spacing: .08em; }
+.profile-stats { display: flex; gap: 12px 24px; flex-wrap: wrap; margin: 0 0 14px; font-size: 11.5px; color: var(--muted); letter-spacing: .06em; }
+.profile-stats b { color: var(--ink); font-size: 17px; font-weight: 600; margin-left: 4px; }
+.profile-near { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0 4px; }
+.near-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 16px 8px 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  min-width: 230px;
+}
+.near-img { width: 56px; height: 56px; object-fit: cover; border: 1px solid var(--line); filter: saturate(.88); }
+.near-name { display: block; font-size: 15px; letter-spacing: .08em; }
+.near-school { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+.near-score { display: block; font-size: 10.5px; color: var(--accent); margin-top: 3px; letter-spacing: .08em; }
+.faction-row { display: grid; grid-template-columns: 7.6em 1fr 2.4em; gap: 8px; align-items: center; margin: 7px 0; }
+.faction-name { font-size: 11.5px; color: var(--muted); }
+.faction-track { height: 5px; background: var(--panel-2); border: 1px solid var(--line); overflow: hidden; }
+.faction-track i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); }
+.faction-num { font-size: 11px; text-align: right; color: var(--muted); }
+@media (max-width: 720px) {
+  .profile-hero { grid-template-columns: 1fr; }
+  .hero-portrait { max-width: 190px; }
+}
 .verdict-card {
   position: relative;
   border-radius: 2px;

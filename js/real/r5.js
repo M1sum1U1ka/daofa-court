@@ -80,7 +80,7 @@ window.DATA_REAL.cases.push({
     { sp: "judge", t: "公诉人，宣读起诉书。" },
     { sp: "prosecutor", t: "2010年10月20日二十二时许，被告人驾车撞倒张妙，后又持刀加害，致其死亡。" },
     { sp: "prosecutor", t: "起诉书认定：手段特别残忍，情节特别恶劣，后果特别严重。" },
-    { sp: "defense", t: "审判长，我打断一下。基本事实我们不争，『特别残忍』这四个字，我们有话说。" },
+    { sp: "defense", t: "审判长，请允许我说明一点。基本事实我们不争，『特别残忍』这四个字，我们有话说。" },
     { sp: "judge", t: "等起诉书念完再说。" },
     { sp: "prosecutor", t: "被告人归案后如实供述，起诉书已载明。但自首不足以抵消罪行。" },
     { sp: "defense", t: "他还是自首的。刑法第六十七条，可以从轻。" },
@@ -113,7 +113,7 @@ window.DATA_REAL.cases.push({
         { sp: "narr", t: "撕扯的痕迹在车窗和车门上。路边没有。" },
         { sp: "judge", t: "要把人往路边挪，第一刀为什么扎胸口？", em: "stern" },
         { sp: "witnessM", who: "药家鑫", role: "被告人", t: "……" },
-        { sp: "judge", t: "人已经倒了，为什么还扎？", em: "stern" },
+        { sp: "judge", t: "被害人倒地后，为何继续加害？", em: "stern" },
         { sp: "witnessM", who: "药家鑫", role: "被告人", t: "我怕她记住车牌。", em: "sad" },
         { sp: "prosecutor", t: "审判长，这一句，和『挪到路边』对不上。" },
         { sp: "narr", t: "被告席的挡板上，他的指节扣得发白。" }
@@ -212,10 +212,10 @@ window.DATA_REAL.cases.push({
       break: [
         { sp: "judge", t: "被告人，你听见了。" },
         { sp: "witnessM", who: "药家鑫", role: "被告人", t: "听见了。" },
-        { sp: "judge", t: "你有什么要说？" },
+        { sp: "judge", t: "被告人是否有最后陈述？" },
         { sp: "witnessM", who: "药家鑫", role: "被告人", t: "我对不起。我知道这三个字没用。", em: "sad" },
         { sp: "witnessM", who: "张妙的丈夫", role: "张妙的丈夫", t: "没用。你别说了。" },
-        { sp: "judge", t: "家属，情绪可以有。庭上不许骂人。" },
+        { sp: "judge", t: "家属可以表达意见，但不得使用侮辱性言辞。" },
         { sp: "defense", t: "审判长，被害方的痛，我们不敢碰。但量刑不能按恨的深浅来。" },
         { sp: "judge", t: "记下。双方的意见，合议庭都听进去了。" }
       ],

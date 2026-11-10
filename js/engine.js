@@ -180,6 +180,86 @@
   }
 
   /* ================= 入口 ================= */
+  /* ================= 开场 PV ================= */
+  var PV_SCENES = [
+    {
+      kicker: "CASE RE-TRIAL",
+      title: "道法裁判",
+      sub: "五案重审 · 两套画风 · 一次关于你自己的审判",
+      body: "真实卷宗以公开判例为底本；二次元法庭是架空城邦的伦理寓言。",
+      bg: "img/real/bg-court.jpg"
+    },
+    {
+      kicker: "THE CASE FILES",
+      title: "先看现场，再开庭",
+      sub: "还原 · 追问 · 举证 · 判词",
+      body: "还原里只入卷一小部分材料，其余证据要在庭审的追问中一份一份翻出来。",
+      bg: "img/evidence/r1-monitor.jpg"
+    },
+    {
+      kicker: "THE ANIME COURT",
+      title: "五个不存在的城邦",
+      sub: "电车难题 · 记忆买卖 · 替罪羊 · 谎言税 · 无知之幕",
+      body: "没有真实案件，只有一直存在的伦理问题。二十位哲人在评议席上等你求教。",
+      bg: "img/anime/bg-court.jpg"
+    },
+    {
+      kicker: "YOUR VERDICT",
+      title: "你更像谁",
+      sub: "形式主义 · 功利主义 · 集体主义 · 自由主义 · 儒家 · 关怀伦理",
+      body: "每一次判断都会写进画像。完成一庭即可生成完整雷达，完成越多，越接近真实的你。",
+      bg: "img/evidence/a5-shard.jpg"
+    }
+  ];
+  function renderPV(done) {
+    var idx = 0, timer = null;
+    var scenes = "";
+    for (var i = 0; i < PV_SCENES.length; i++) {
+      var s = PV_SCENES[i];
+      scenes += '<section class="pv-scene" data-pv="' + i + '" style="background-image:url(' + s.bg + ')">' +
+        '<div class="pv-shade"></div>' +
+        '<div class="pv-copy">' +
+          '<div class="pv-kicker">' + esc(s.kicker) + '</div>' +
+          '<h1 class="pv-title">' + esc(s.title) + '</h1>' +
+          '<div class="pv-rule"><i></i></div>' +
+          '<p class="pv-sub">' + esc(s.sub) + '</p>' +
+          '<p class="pv-body">' + esc(s.body) + '</p>' +
+        '</div>' +
+      '</section>';
+    }
+    app.innerHTML = '<div class="pv" id="pv">' +
+      scenes +
+      '<div class="pv-top"><span>道法裁判 · 开场影像</span><button class="pv-skip" data-pv-skip="1">跳过 PV →</button></div>' +
+      '<div class="pv-dots">' + PV_SCENES.map(function (_, i) { return '<i data-dot="' + i + '"></i>'; }).join("") + '</div>' +
+      '<div class="pv-enter"><button class="btn btn-primary" data-pv-enter="1">进入法庭</button></div>' +
+    '</div>';
+    var root = document.getElementById("pv");
+    var nodes = root.querySelectorAll(".pv-scene");
+    var dots = root.querySelectorAll(".pv-dots i");
+    function show(n) {
+      idx = n;
+      for (var i = 0; i < nodes.length; i++) nodes[i].classList.toggle("on", i === n);
+      for (var j = 0; j < dots.length; j++) dots[j].classList.toggle("on", j === n);
+      root.classList.toggle("at-end", n === nodes.length - 1);
+    }
+    function finish() {
+      clearTimeout(timer);
+      try { sessionStorage.setItem("daofa.pv.seen", "1"); } catch (e) {}
+      if (done) done();
+    }
+    function next() {
+      if (idx >= nodes.length - 1) { finish(); return; }
+      show(idx + 1);
+      timer = setTimeout(next, idx === nodes.length - 1 ? 3600 : 4200);
+    }
+    root.addEventListener("click", function (e) {
+      if (e.target.closest("[data-pv-skip]") || e.target.closest("[data-pv-enter]")) { finish(); return; }
+      if (e.target.closest(".pv")) next();
+    });
+    show(0);
+    timer = setTimeout(next, 4200);
+  }
+
   function renderLanding() {
     view = "landing";
     S = null;
@@ -222,17 +302,35 @@
             gateHTML("real", VERSIONS.real) +
             gateHTML("anime", VERSIONS.anime) +
           '</div>' +
+          thinkerWallHTML() +
           aiBandHTML() +
           '<div class="ts-foot">' +
             '真实卷宗以公开判例为底本；二次元法庭为完全架空的城邦寓言，不对应任何真实案件。两版进度各自独立。<br>' +
             '每案先看场景复原，再开庭质证；还原里只入卷一小部分材料，其余在庭审追问中依次引出。五案结束后生成你的伦理画像。' +
           '</div>' +
+          '<button class="ts-replay" data-act="pv">▶ 重看开场 PV</button>' +
         '</div>' +
       '</div>';
     playBGM("title");
   }
 
   /* 标题页的 AI 能力说明：让玩家一眼知道 AI 在游戏里干什么 */
+  function thinkerWallHTML() {
+    var chips = "";
+    var list = VERSIONS.real.thinkers;
+    for (var i = 0; i < list.length; i++) {
+      var t = list[i];
+      chips += '<div class="thinker-chip" title="' + esc(t.name + " · " + t.tag) + '">' +
+        '<img src="img/thinkers/' + esc(t.id) + '.jpg" alt="' + esc(t.name) + '" loading="lazy">' +
+        '<b>' + esc(t.name) + '</b><span>' + esc(t.tag) + '</span>' +
+      '</div>';
+    }
+    return '<section class="ts-pantheon">' +
+      '<div class="ts-panth-head"><b>伦理群像</b><span>二十位思想者 · 二十种判断方式 · 你的选择会落到其中一处</span></div>' +
+      '<div class="ts-panth-track">' + chips + '</div>' +
+    '</section>';
+  }
+
   function aiBandHTML() {
     var ready = window.AI && window.AI.ready();
     var model = "glm-5.3-flash";
@@ -1538,6 +1636,64 @@
       desc: "你极警惕以集体之名拿走个人的东西。只要取得与转让是正当的，再分配在你这里就需要极强的理由。" }
   ];
 
+  /* 历史人物的伦理派系归并：画像页与坐标图共用 */
+  var SCHOOL_OF = {
+    kant: "形式主义伦理学", mill: "自由主义伦理学", bentham: "功利主义伦理学",
+    aristotle: "德性伦理学", rawls: "契约论伦理学", beccaria: "刑罚人道主义",
+    confucius: "儒家伦理学", hanfei: "法家伦理学", mengzi: "儒家伦理学",
+    xunzi: "儒家伦理学", laozi: "自然主义伦理学", wangyangming: "儒家伦理学",
+    socrates: "德性伦理学", plato: "理想主义伦理学", aquinas: "自然法伦理学",
+    hobbes: "集体主义伦理学", locke: "权利论伦理学", nietzsche: "存在主义伦理学",
+    gilligan: "关怀伦理学", nozick: "权利论伦理学"
+  };
+  /* 坐标图只画八个体量大、差异清楚的派系；其余派系在分布条里完整列出 */
+  var FACTION_DEFS = [
+    { id: "formal", name: "形式主义伦理学", members: ["kant"], x: -0.72, y: 0.56, plot: true },
+    { id: "utilitarian", name: "功利主义伦理学", members: ["bentham"], x: 0.74, y: 0.56, plot: true },
+    { id: "collectivist", name: "集体主义伦理学", members: ["hobbes"], x: 0.86, y: 0.02, plot: true },
+    { id: "liberal", name: "自由主义伦理学", members: ["mill"], x: -0.86, y: 0.02, plot: true },
+    { id: "virtue", name: "德性伦理学", members: ["aristotle", "socrates"], x: -0.46, y: -0.72, plot: true },
+    { id: "contract", name: "契约论伦理学", members: ["rawls"], x: 0.04, y: 0.84, plot: true },
+    { id: "care", name: "关怀伦理学", members: ["gilligan"], x: 0.5, y: -0.66, plot: true },
+    { id: "confucian", name: "儒家伦理学", members: ["confucius", "mengzi", "xunzi", "wangyangming"], x: -0.08, y: -0.84, plot: true },
+    { id: "legalist", name: "法家伦理学", members: ["hanfei"], x: 0.9, y: 0.3, plot: false },
+    { id: "natural", name: "自然法伦理学", members: ["aquinas"], x: 0.3, y: 0.9, plot: false },
+    { id: "naturalism", name: "自然主义伦理学", members: ["laozi"], x: 0.3, y: 0.9, plot: false },
+    { id: "idealist", name: "理想主义伦理学", members: ["plato"], x: -0.3, y: 0.9, plot: false },
+    { id: "penal", name: "刑罚人道主义", members: ["beccaria"], x: -0.9, y: 0.3, plot: false },
+    { id: "existential", name: "存在主义伦理学", members: ["nietzsche"], x: 0.72, y: -0.56, plot: false },
+    { id: "rights", name: "权利论伦理学", members: ["locke", "nozick"], x: -0.72, y: -0.56, plot: false }
+  ];
+  function schoolName(a) { return SCHOOL_OF[a.id] || a.school; }
+  function archById(id) {
+    for (var i = 0; i < ARCHETYPES.length; i++) if (ARCHETYPES[i].id === id) return ARCHETYPES[i];
+    return null;
+  }
+  function factionOfArch(id) {
+    for (var i = 0; i < FACTION_DEFS.length; i++) {
+      if (FACTION_DEFS[i].members.indexOf(id) >= 0) return FACTION_DEFS[i];
+    }
+    return null;
+  }
+  function factionVec(f) {
+    var v = {}, i, k;
+    for (i = 0; i < DIMS.length; i++) v[DIMS[i].k] = 0;
+    for (i = 0; i < f.members.length; i++) {
+      var a = archById(f.members[i]);
+      if (!a) continue;
+      for (k in a.vec) v[k] = (v[k] || 0) + a.vec[k] / f.members.length;
+    }
+    return v;
+  }
+  function factionRanking(pct) {
+    var arr = [];
+    for (var i = 0; i < FACTION_DEFS.length; i++) {
+      arr.push({ def: FACTION_DEFS[i], sim: cosine(pct, factionVec(FACTION_DEFS[i])) });
+    }
+    arr.sort(function (a, b) { return b.sim - a.sim; });
+    return arr;
+  }
+
   function profileData(version) {
     var picks = loadPicks(version);
     var sum = {}, keys = [], total = 0, count = 0;
@@ -1560,13 +1716,26 @@
       pct[k] = Math.round((sum[k] / total) * 1000) / 10;
     }
     var best = null, second = null;
+    var ranked = [];
     for (var a = 0; a < ARCHETYPES.length; a++) {
       var arch = ARCHETYPES[a];
-      var sim = cosine(pct, arch.vec);
-      if (!best || sim > best.sim) { second = best; best = { arch: arch, sim: sim }; }
-      else if (!second || sim > second.sim) { second = { arch: arch, sim: sim }; }
+      ranked.push({ arch: arch, sim: cosine(pct, arch.vec) });
     }
-    return { sum: sum, pct: pct, count: count, picks: keys, best: best, second: second };
+    ranked.sort(function (x, y) { return y.sim - x.sim; });
+    best = ranked[0] || null;
+    second = ranked[1] || null;
+    var V = VERSIONS[version];
+    var chapters = 0;
+    if (V) for (var ci = 0; ci < V.cases.length; ci++) if (bestGrade(version, V.cases[ci].id)) chapters++;
+    var confidence = Math.min(96, Math.round(100 * (1 - Math.exp(-count / 7))));
+    var factions = factionRanking(pct).slice(0, 10);
+    var maxFaction = factions.length ? factions[0].sim : 1;
+    return {
+      sum: sum, pct: pct, count: count, picks: keys,
+      best: best, second: second, third: ranked[2] || null, ranked: ranked.slice(0, 6),
+      chapters: chapters, totalChapters: V ? V.cases.length : 5,
+      confidence: confidence, factions: factions, maxFaction: maxFaction
+    };
   }
 
   function cosine(pct, vec) {
@@ -1590,6 +1759,14 @@
   function radarSVG(pct) {
     var cx = 190, cy = 190, R = 118;
     var rings = "", axes = "", labels = "", pts = [], archPts = [];
+    /* 按最高维度归一化：完成一庭就能得到完整形状，完成越多形状越稳定 */
+    var maxP = 1, maxA = 1, dk;
+    for (var d = 0; d < DIMS.length; d++) {
+      dk = DIMS[d].k;
+      if ((pct[dk] || 0) > maxP) maxP = pct[dk];
+      var av = (profileDataState.best ? profileDataState.best.arch.vec[dk] : 0) || 0;
+      if (av > maxA) maxA = av;
+    }
     for (var r = 1; r <= 4; r++) {
       rings += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (R * r / 4).toFixed(1) + '" fill="none" stroke="currentColor" stroke-opacity=".14" />';
     }
@@ -1599,8 +1776,8 @@
       axes += '<line x1="' + cx + '" y1="' + cy + '" x2="' + x.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="currentColor" stroke-opacity=".16" />';
       var lx = cx + Math.cos(ang) * (R + 26), ly = cy + Math.sin(ang) * (R + 26);
       labels += '<text x="' + lx.toFixed(1) + '" y="' + (ly + 4).toFixed(1) + '" text-anchor="middle" class="chart-label">' + DIMS[i].label + '</text>';
-      var v = (pct[DIMS[i].k] || 0) / 100;
-      var v2 = (profileDataState.best.arch.vec[DIMS[i].k] || 0);
+      var v = maxP ? Math.min(1, (pct[DIMS[i].k] || 0) / maxP) * 0.92 : 0;
+      var v2 = maxA ? Math.min(1, ((profileDataState.best ? profileDataState.best.arch.vec[DIMS[i].k] : 0) || 0) / maxA) * 0.92 : 0;
       pts.push((cx + Math.cos(ang) * R * v).toFixed(1) + ',' + (cy + Math.sin(ang) * R * v).toFixed(1));
       archPts.push((cx + Math.cos(ang) * R * v2).toFixed(1) + ',' + (cy + Math.sin(ang) * R * v2).toFixed(1));
     }
@@ -1617,42 +1794,45 @@
 
   var profileDataState = { best: null };
 
+  var FACTION_SHORT = {
+    formal: "形式", utilitarian: "功利", collectivist: "集体", liberal: "自由",
+    virtue: "德性", contract: "契约", care: "关怀", confucian: "儒家",
+    legalist: "法家", natural: "自然法", naturalism: "自然", idealist: "理想",
+    penal: "刑罚", existential: "存在", rights: "权利"
+  };
+
   function coordSVG(pct) {
     var w = 380, h = 380, pad = 40;
     var cx = w / 2, cy = h / 2, half = (w - pad * 2) / 2;
-    var out = '<svg class="coord" viewBox="0 0 380 380" role="img" aria-label="伦理坐标图">' +
+    var out = '<svg class="coord" viewBox="0 0 380 380" role="img" aria-label="伦理派系坐标图">' +
       '<rect x="' + pad + '" y="' + pad + '" width="' + (w - pad * 2) + '" height="' + (h - pad * 2) +
         '" fill="none" stroke="currentColor" stroke-opacity=".18" />' +
       '<line x1="' + pad + '" y1="' + cy + '" x2="' + (w - pad) + '" y2="' + cy + '" stroke="currentColor" stroke-opacity=".22" />' +
-      '<line x1="' + cx + '" y1="' + pad + '" x2="' + cx + '" y2="' + (h - pad) + '" stroke="currentColor" stroke-opacity=".22" />' +
-      '<text x="' + (pad - 4) + '" y="' + (cy - 8) + '" class="chart-label" text-anchor="start">义务论</text>' +
-      '<text x="' + (w - pad + 4) + '" y="' + (cy - 8) + '" class="chart-label" text-anchor="end">结果论</text>' +
-      '<text x="' + (cx + 6) + '" y="' + (pad + 10) + '" class="chart-label" text-anchor="start">集体秩序</text>' +
-      '<text x="' + (cx + 6) + '" y="' + (h - pad - 2) + '" class="chart-label" text-anchor="start">个体权利</text>';
+      '<line x1="' + cx + '" y1="' + pad + '" x2="' + cx + '" y2="' + (h - pad) + '" stroke="currentColor" stroke-opacity=".22" />';
 
     var pc = coordsOf(pct);
-    /* 二十个派系全画点，只标注离玩家最近的十个，避免坐标图变成一团字 */
-    var ranking = [];
-    for (var m = 0; m < ARCHETYPES.length; m++) {
-      var cc = coordsOf(ARCHETYPES[m].vec);
-      var dx = cc.x - pc.x, dy = cc.y - pc.y;
-      ranking.push({ id: ARCHETYPES[m].id, d: dx * dx + dy * dy });
-    }
-    ranking.sort(function (a, b) { return a.d - b.d; });
-    var labelSet = {};
-    for (var k = 0; k < ranking.length && k < 10; k++) labelSet[ranking[k].id] = 1;
-    if (profileDataState.best) labelSet[profileDataState.best.arch.id] = 1;
-
-    for (var i = 0; i < ARCHETYPES.length; i++) {
-      var a = ARCHETYPES[i];
-      var c = coordsOf(a.vec);
-      var x = cx + c.x * half, y = cy - c.y * half;
-      out += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3.4" fill="#8f9bb3" fill-opacity=".85" />';
-      if (labelSet[a.id]) {
-        out += '<text x="' + (x + 6).toFixed(1) + '" y="' + (y + 4).toFixed(1) + '" class="chart-label small">' + a.name + '</text>';
-      }
+    var bestF = profileDataState.bestFaction;
+    var bestX = null, bestY = null;
+    var n = FACTION_DEFS.length;
+    /* 十五个派系均匀分布在坐标外圈，短标签，互不重叠；金点为最接近你的派系 */
+    for (var m = 0; m < n; m++) {
+      var f = FACTION_DEFS[m];
+      var ang = -Math.PI / 2 + m * Math.PI * 2 / n;
+      var fx = cx + Math.cos(ang) * half * 0.9;
+      var fy = cy + Math.sin(ang) * half * 0.9;
+      var lx = cx + Math.cos(ang) * (half + 10);
+      var ly = cy + Math.sin(ang) * (half + 10);
+      var anchor = Math.cos(ang) > 0.28 ? "start" : (Math.cos(ang) < -0.28 ? "end" : "middle");
+      var isBest = bestF && bestF.id === f.id;
+      if (isBest) { bestX = fx; bestY = fy; }
+      out += '<line x1="' + fx.toFixed(1) + '" y1="' + fy.toFixed(1) + '" x2="' + lx.toFixed(1) + '" y2="' + ly.toFixed(1) + '" stroke="currentColor" stroke-opacity=".14" />' +
+        '<circle cx="' + fx.toFixed(1) + '" cy="' + fy.toFixed(1) + '" r="' + (isBest ? 6 : 3.6) + '" fill="' + (isBest ? "#c9a765" : "#8f9bb3") + '" fill-opacity="' + (isBest ? ".98" : ".78") + '" />' +
+        '<text x="' + lx.toFixed(1) + '" y="' + (ly + 4).toFixed(1) + '" text-anchor="' + anchor + '" class="chart-label small' + (isBest ? " player" : "") + '">' + (FACTION_SHORT[f.id] || f.name) + '</text>';
     }
     var px = cx + pc.x * half, py = cy - pc.y * half;
+    if (bestX != null) {
+      out += '<line x1="' + px.toFixed(1) + '" y1="' + py.toFixed(1) + '" x2="' + bestX.toFixed(1) + '" y2="' + bestY.toFixed(1) + '" stroke="#c9a765" stroke-opacity=".45" stroke-dasharray="3 4" />';
+    }
     out += '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="9" fill="rgba(201,167,101,.28)" />' +
       '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="4.6" fill="#c9a765" />' +
       '<text x="' + (px + 10).toFixed(1) + '" y="' + (py + 5).toFixed(1) + '" class="chart-label player">你</text>' +
@@ -1671,13 +1851,15 @@
       app.innerHTML = '<div class="profile-screen"><div class="profile-inner">' +
         '<button class="link-back" data-act="hub">← 返回目录</button>' +
         '<h1 class="profile-title">审判者画像</h1>' +
-        '<p class="profile-lead">还没有足够的选择。至少完成一庭，或在该庭的关键节点作出判断。</p>' +
+        '<p class="profile-lead">还没有足够的选择。完成任意一庭，或在该庭的关键节点作出判断，就能生成第一版完整画像。</p>' +
       '</div></div>';
       return;
     }
     profileDataState.best = pd.best;
+    profileDataState.bestFaction = pd.factions[0].def;
     var best = pd.best.arch;
     var second = pd.second ? pd.second.arch : null;
+    var third = pd.third ? pd.third.arch : null;
     var dims = "";
     for (var i = 0; i < DIMS.length; i++) {
       var d = DIMS[i], v = pd.pct[d.k] || 0;
@@ -1685,6 +1867,26 @@
         '<span class="dim-track"><i style="width:' + v.toFixed(1) + '%"></i></span>' +
         '<b class="dim-num">' + v.toFixed(0) + '</b></div>';
     }
+    var factionBars = "";
+    for (var fi = 0; fi < pd.factions.length; fi++) {
+      var ff = pd.factions[fi];
+      var fit = Math.max(0, Math.min(100, Math.round((ff.sim - 0.55) / 0.45 * 100)));
+      factionBars += '<div class="faction-row"><span class="faction-name">' + esc(ff.def.name) + '</span>' +
+        '<span class="faction-track"><i style="width:' + fit + '%"></i></span>' +
+        '<b class="faction-num">' + fit + '</b></div>';
+    }
+    var nearCards = "";
+    [pd.second, pd.third].forEach(function (item) {
+      if (!item) return;
+      var a = item.arch;
+      var fit = Math.max(0, Math.min(100, Math.round((item.sim - 0.55) / 0.45 * 100)));
+      nearCards += '<div class="near-card">' +
+        '<img class="near-img" src="img/thinkers/' + a.id + '.jpg" alt="' + esc(a.name) + '">' +
+        '<div><b class="near-name">' + esc(a.name) + '</b>' +
+          '<span class="near-school">' + esc(schoolName(a)) + '</span>' +
+          '<span class="near-score">接近度 ' + fit + '</span></div>' +
+      '</div>';
+    });
     var pickList = "";
     for (var j = 0; j < pd.picks.length; j++) {
       var p = pd.picks[j];
@@ -1693,27 +1895,41 @@
         '<span class="pk-label">' + esc(p.label) + '</span></li>';
     }
     var topDims = topDimensions(pd.pct, 2);
-    var analysis = analysisText(pd, best, second, topDims);
+    var analysis = analysisText(pd, best, second, third, topDims);
     app.innerHTML = '<div class="profile-screen"><div class="profile-inner">' +
       '<button class="link-back" data-act="hub">← 返回目录</button>' +
-      '<div class="kicker">审判者画像 · ' + esc(S.V.meta.title) + '</div>' +
-      '<h1 class="profile-title">你更接近 ' + esc(best.name) + '</h1>' +
-      '<p class="profile-lead">伦理派别：<b>' + esc(best.school) + '</b> · 基于 ' + pd.count + ' 次关键判断' +
-        (second ? ' · 次接近：' + esc(second.name) + '（' + esc(second.school) + '）' : '') + '</p>' +
-      '<div class="profile-quote">「' + esc(best.quote) + '」</div>' +
+      '<section class="profile-hero">' +
+        '<div class="hero-portrait"><img src="img/thinkers/' + best.id + '.jpg" alt="' + esc(best.name) + '">' +
+          '<span class="hero-stamp">伦理画像</span></div>' +
+        '<div class="hero-body">' +
+          '<div class="kicker">审判者画像 · ' + esc(S.V.meta.title) + '</div>' +
+          '<h1 class="profile-title">你更接近 ' + esc(best.name) + '</h1>' +
+          '<p class="profile-school">伦理派系：<b>' + esc(schoolName(best)) + '</b></p>' +
+          '<div class="profile-stats">' +
+            '<span>关键判断 <b>' + pd.count + '</b></span>' +
+            '<span>完成章节 <b>' + pd.chapters + ' / ' + pd.totalChapters + '</b></span>' +
+            '<span>画像稳定度 <b>' + pd.confidence + '%</b></span>' +
+          '</div>' +
+          '<div class="profile-quote">「' + esc(best.quote) + '」</div>' +
+          '<p class="profile-lead">' + esc(best.desc) + '</p>' +
+        '</div>' +
+      '</section>' +
+      (nearCards ? '<div class="profile-near">' + nearCards + '</div>' : '') +
       '<div class="charts">' +
         '<div class="chart-card"><h3 class="chart-title">伦理倾向雷达</h3>' + radarSVG(pd.pct) +
-          '<p class="chart-note">实线为你，虚线为 ' + esc(best.name) + ' 的理想型。</p></div>' +
-        '<div class="chart-card"><h3 class="chart-title">伦理坐标</h3>' + coordSVG(pd.pct) +
-          '<p class="chart-note">横轴义务论—结果论，纵轴个体权利—集体秩序。</p></div>' +
+          '<p class="chart-note">按最高维度归一化：完成一庭即可成形，完成章节越多，形状越稳定。实线为你，虚线为 ' + esc(best.name) + ' 的理想型。</p></div>' +
+        '<div class="chart-card"><h3 class="chart-title">伦理派系坐标</h3>' + coordSVG(pd.pct) +
+          '<p class="chart-note">十五个伦理派系分布在外圈，金点为最接近你的派系；完整倾向数值见下方分布条。</p></div>' +
       '</div>' +
       '<div class="profile-grid">' +
-        '<div class="profile-block"><h3 class="chart-title">维度分布</h3>' + dims + '</div>' +
-        '<div class="profile-block"><h3 class="chart-title">分析</h3>' +
-          '<p class="profile-p">' + analysis[0] + '</p>' +
-          '<p class="profile-p">' + analysis[1] + '</p>' +
-          '<p class="profile-p">' + analysis[2] + '</p>' +
-        '</div>' +
+        '<div class="profile-block"><h3 class="chart-title">六维倾向</h3>' + dims + '</div>' +
+        '<div class="profile-block"><h3 class="chart-title">派系分布</h3>' + factionBars + '</div>' +
+      '</div>' +
+      '<div class="profile-block"><h3 class="chart-title">详细分析</h3>' +
+        '<p class="profile-p">' + analysis[0] + '</p>' +
+        '<p class="profile-p">' + analysis[1] + '</p>' +
+        '<p class="profile-p">' + analysis[2] + '</p>' +
+        '<p class="profile-p">' + analysis[3] + '</p>' +
       '</div>' +
       '<div class="profile-block"><h3 class="chart-title">你的关键判断</h3>' +
         '<ul class="pick-list">' + pickList + '</ul></div>' +
@@ -1735,15 +1951,26 @@
     return arr.slice(0, n);
   }
 
-  function analysisText(pd, best, second, topDims) {
+  function analysisText(pd, best, second, third, topDims) {
     var a = topDims[0], b = topDims[1];
     var low = DIMS.slice().sort(function (x, y) { return (pd.pct[x.k] || 0) - (pd.pct[y.k] || 0); })[0];
-    var p1 = "在你的 " + pd.count + " 次判断里，" + a.label + "与" + b.label + "两个维度最突出，" + low.label + "维度相对靠后。这说明你更倾向于用" +
-      dimPhrase(a.k) + "的方式处理纠纷，而不是" + dimPhrase(low.k) + "。";
-    var p2 = "这与" + best.name + "的" + best.school + "最接近。" + best.desc +
-      (second ? "你身上也有" + second.name + "的影子：当案件的具体处境比抽象规则更重要时，你会向那一侧移动。" : "");
-    var p3 = "可能的盲点：" + blindSpot(low.k) + " 如果把五案当作同一套规则的五次试验，你最需要回答的问题是——你愿意让所有人都在同样的情形下，按你这次的选择被对待吗？";
-    return [p1, p2, p3];
+    var high = a;
+    var spread = (pd.pct[high.k] || 0) - (pd.pct[low.k] || 0);
+    var balance = spread > 14 ? "你的倾向比较鲜明，遇到复杂案件时容易沿着这条主轴作判断。" :
+      spread > 7 ? "你的倾向有主次，但整体还算均衡，会随案件处境调整。" :
+      "你的六个维度相当均衡，说明你不太愿意让单一价值压倒其他考虑。";
+    var p1 = "在 " + pd.count + " 次关键判断里，" + a.label + "与" + b.label + "最突出，" + low.label + "相对靠后。" + balance +
+      " 你更习惯用" + dimPhrase(a.k) + "的方式处理纠纷，而不是" + dimPhrase(low.k) + "。";
+    var p2 = "把全部选择放在一起看，你最接近" + best.name + "，属于" + schoolName(best) + "。" + best.desc +
+      " 这不是说你每一案都会这样判，而是说：当价值发生冲突时，你最先伸手去抓的，是这套理由。";
+    var p3 = second
+      ? "你的第二接近者是" + second.name + "（" + schoolName(second) + "）" + (third ? "，第三是" + third.name + "（" + schoolName(third) + "）" : "") +
+        "。你身上有他们的影子：当案件的具体处境、关系或制度成本压过抽象规则时，你会向那一侧移动。真正稳定的不是某一个标签，而是你在几种理由之间反复权衡的方式。"
+      : "目前样本还少，第二、第三接近者尚不稳定；再完成一两庭，画像会更清楚。";
+    var p4 = "可能的盲点：" + blindSpot(low.k) +
+      " 目前已完成 " + pd.chapters + " / " + pd.totalChapters + " 章，画像稳定度约 " + pd.confidence + "%。" +
+      "完成章节越多，雷达与派系分布越可靠；如果只剩最后一两章，建议回头看看自己在最不擅长的那个维度上，是否总是交给别人替你决定。";
+    return [p1, p2, p3, p4];
   }
 
   function dimPhrase(k) {
@@ -1771,6 +1998,7 @@
   /* ================= 交互 ================= */
   function handleAct(act) {
     if (act === "aiSettings") { openAiSettings(); return; }
+    if (act === "pv") { renderPV(renderLanding); return; }
     if (act === "aiReason") { aiVerdictReason(); return; }
     if (act === "aiProfile") { aiProfileAnalysis(); return; }
     if (!S) {
@@ -1907,5 +2135,8 @@
   /* ================= 启动 ================= */
   loadVoiceMan("real");
   loadVoiceMan("anime");
-  renderLanding();
+  var pvSeen = false;
+  try { pvSeen = sessionStorage.getItem("daofa.pv.seen") === "1"; } catch (e) {}
+  if (pvSeen) renderLanding();
+  else renderPV(renderLanding);
 })();
